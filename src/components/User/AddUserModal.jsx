@@ -13,7 +13,7 @@ import Select from "@mui/material/Select";
 import { useState } from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import { useEffect } from "react";
-import { getAllOrganizationsName } from "../../services/getAllOrganizationsIDnName";
+import { getAllOrganizationsName } from "../../services/DataServices/getAllOrganizationsIDnName";
 
 function AddUserModal({ open, handleClose }) {
   const [names, setNames] = useState([]);

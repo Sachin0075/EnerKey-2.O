@@ -20,7 +20,7 @@ import axios from "axios";
 import { useEffect } from "react";
 
 const url = "https://localhost:7162/api/Organization/getallorganizations";
-const token = import.meta.env.VITE_TOKEN_KEY;
+const token = localStorage.getItem("token");
 export default function BasicTable() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isviewModalOpen, setIsViewModalOpen] = useState(false);
@@ -28,7 +28,9 @@ export default function BasicTable() {
   const [orgId, setOrgId] = useState("");
 
   const [rows, setRows] = useState([]);
-
+  useEffect(() => {
+    fetchOrganizations();
+  }, []);
   async function fetchOrganizations() {
     try {
       const response = await axios.get(url, {
@@ -39,10 +41,6 @@ export default function BasicTable() {
       console.error("Error fetching organizations:", error);
     }
   }
-
-  useEffect(() => {
-    fetchOrganizations();
-  }, []);
 
   function handleAddopen(organizationId) {
     console.log("Organization ID:", organizationId);

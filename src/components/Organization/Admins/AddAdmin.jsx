@@ -18,7 +18,7 @@ function AddAdmin({ isModalopen, handleClose, orgID }) {
   const [isFilled, setIsFilled] = useState(false);
 
   async function handleAPI() {
-    const token = import.meta.env.VITE_TOKEN_KEY;
+    const token = localStorage.getItem("token");
     const baseurl = "https://localhost:7266/api/User/register";
     const payload = {
       userName: value.adminName,

@@ -25,7 +25,7 @@ export default function UsersTable() {
     try {
       const geturl =
         "https://localhost:7162/api/Organization/getallorganizations";
-      const token = import.meta.env.VITE_TOKEN_KEY;
+      const token = localStorage.getItem("token");
       const getallresponse = await axios.get(geturl, {
         headers: {
           Authorization: `${token}`,
@@ -50,7 +50,7 @@ export default function UsersTable() {
 
   async function handleApi() {
     const url = "https://localhost:7266/api/User/getAllUsers";
-    const token = import.meta.env.VITE_TOKEN_KEY;
+    const token = localStorage.getItem("token");
     try {
       const response = await axios.get(url, {
         headers: {
@@ -77,7 +77,7 @@ export default function UsersTable() {
     if (isDelete) {
       const url = `https://localhost:7266/api/User/deleteUserById/${userId}`;
 
-      const token = import.meta.env.VITE_TOKEN_KEY;
+      const token = localStorage.getItem("token");
       try {
         const response = await axios.delete(url, {
           headers: {

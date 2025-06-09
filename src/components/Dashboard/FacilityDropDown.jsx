@@ -4,8 +4,8 @@ import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import { useEffect } from "react";
-import { getAllFacilitiesGroupedByOrg } from "../../services/FacilityService";
-import { getAllOrganizationsIDnName } from "../../services/getAllOrganizationsIDnName";
+import { getAllFacilitiesGroupedByOrg } from "../../services/DataServices/FacilityService";
+import { getAllOrganizationsIDnName } from "../../services/DataServices/getAllOrganizationsIDnName";
 import { useState } from "react";
 
 export default function SelectSmall() {

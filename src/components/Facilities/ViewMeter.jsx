@@ -19,7 +19,7 @@ export default function ViewMeter({ isModalopen, handleClose }) {
   async function fetchMeterData() {
     try {
       const url = "https://localhost:7183/api/MeterDefination/getAllMeters";
-      const token = import.meta.env.VITE_TOKEN_KEY;
+      const token = localStorage.getItem("token");
       const response = await axios.get(url, {
         headers: {
           Authorization: `${token}`,

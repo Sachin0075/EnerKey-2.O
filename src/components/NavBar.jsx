@@ -5,9 +5,11 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import Button from "@mui/material/Button";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
 import { ArrowBigRightDash } from "lucide-react";
+import Popover from "@mui/material/Popover";
+import { toast } from "react-toastify";
 
 const navItems = [
   { name: "Dashboard", path: "/" },
@@ -17,13 +19,28 @@ const navItems = [
   { name: "Reports", path: "/reports" },
 ];
 
-const Navbar = () => {
+const Navbar = ({ role }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [activePath, setActivePath] = React.useState(location.pathname);
 
   React.useEffect(() => {
     setActivePath(location.pathname);
   }, [location.pathname]);
+
+  // Popover state
+  const [anchorEl, setAnchorEl] = React.useState(null);
+
+  const handleIconClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handlePopoverClose = () => {
+    setAnchorEl(null);
+  };
+
+  const open = Boolean(anchorEl);
+  const id = open ? "profile-popover" : undefined;
 
   return (
     <AppBar
@@ -49,8 +66,8 @@ const Navbar = () => {
               display: "flex",
               alignItems: "center",
               flex: 1,
-              gap: 1.2, // small gap between buttons
-              height: "100%", // ensure vertical alignment
+              gap: 1.2,
+              height: "100%",
             }}
           >
             {navItems.map((item) => {
@@ -63,7 +80,7 @@ const Navbar = () => {
                     paddingRight: "8px",
                     minWidth: "unset",
                     overflow: "hidden",
-                    height: "40px", // match icon/name height
+                    height: "40px",
                     display: "flex",
                     alignItems: "center",
                   }}
@@ -122,7 +139,7 @@ const Navbar = () => {
                 alignItems: "center",
                 marginLeft: 16,
                 paddingBottom: 16,
-                height: "40px", // match nav button height
+                height: "40px",
               }}
             >
               <span
@@ -135,7 +152,70 @@ const Navbar = () => {
                 Sachin
               </span>
               <div style={{ marginLeft: 8 }}>
-                <PersonIcon style={{ color: "white" }} />
+                <PersonIcon
+                  style={{ color: "white" }}
+                  className="cursor-pointer"
+                  aria-describedby={id}
+                  onClick={handleIconClick}
+                />
+                <Popover
+                  id={id}
+                  open={open}
+                  anchorEl={anchorEl}
+                  onClose={handlePopoverClose}
+                  anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "right",
+                  }}
+                  transformOrigin={{
+                    vertical: "top",
+                    horizontal: "right",
+                  }}
+                  slotProps={{
+                    paper: {
+                      sx: {
+                        width: "200px",
+                      },
+                    },
+                  }}
+                >
+                  <Button
+                    fullWidth
+                    sx={{
+                      cursor: "context-menu",
+                      justifyContent: "flex-start",
+                      color: "#015CBB",
+                    }}
+                  >
+                    Role : {role}
+                  </Button>
+                  <Button
+                    fullWidth
+                    onClick={() => {
+                      localStorage.removeItem("token");
+                      navigate("/login");
+                      setActivePath("/login");
+                      toast.info("Logged out successfully", {
+                        position: "top-right",
+                        autoClose: 2000,
+                      });
+                      handlePopoverClose();
+                    }}
+                    sx={{ justifyContent: "flex-start", color: "#015CBB" }}
+                  >
+                    Logout
+                  </Button>
+                  <Button
+                    fullWidth
+                    onClick={() => {
+                      // handle change password logic here
+                      handlePopoverClose();
+                    }}
+                    sx={{ justifyContent: "flex-start", color: "#015CBB" }}
+                  >
+                    Change password
+                  </Button>
+                </Popover>
               </div>
             </div>
           </Box>

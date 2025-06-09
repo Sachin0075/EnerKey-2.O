@@ -2,7 +2,7 @@ import axios from "axios";
 
 const ORG_API_URL = "https://localhost:7162/api/Organization/getallorganizations";
 
-const token = import.meta.env.VITE_TOKEN_KEY;
+const token = localStorage.getItem('token');
 export async function getAllOrganizationsIDnName() {
   try {
     const response = await axios.get(ORG_API_URL, {

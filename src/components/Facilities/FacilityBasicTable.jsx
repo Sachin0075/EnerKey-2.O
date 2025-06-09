@@ -26,13 +26,13 @@ export default function FacilityBasicTable() {
   const [isviewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [rows, setRows] = useState([]);
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     handleAPi();
   }, []);
   async function handleAPi() {
     const url = "https://localhost:7108/api/Facility/getAllFacilities";
-    const token = import.meta.env.VITE_TOKEN_KEY;
     try {
       const response = await axios.get(url, {
         headers: {
@@ -80,7 +80,7 @@ export default function FacilityBasicTable() {
     );
     if (isdelete) {
       const url = `https://localhost:7108/api/Facility/deleteFacility/${facilityId}`;
-      const token = import.meta.env.VITE_TOKEN_KEY;
+      const token = localStorage.getItem("token");
       try {
         const response = await axios.delete(url, {
           headers: {

@@ -27,7 +27,7 @@ function ViewAdmin({ isModalopen, handleClose, OrgID }) {
           `https://localhost:7266/api/User/customer-admin/${OrgID}`,
           {
             headers: {
-              Authorization: import.meta.env.VITE_TOKEN_KEY,
+              Authorization: localStorage.getItem("token"),
             },
           }
         );

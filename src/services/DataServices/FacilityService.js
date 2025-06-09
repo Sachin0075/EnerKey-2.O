@@ -2,7 +2,7 @@ import axios from "axios";
 
 const Fac_API_URL = "https://localhost:7108/api/Facility/getAllFacilities";
 
-const token = import.meta.env.VITE_TOKEN_KEY;
+const token = localStorage.getItem('token');
 export async function getAllOrganizations() {
     try {
         const response = await axios.get(Fac_API_URL, {

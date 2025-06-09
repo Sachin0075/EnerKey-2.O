@@ -64,7 +64,7 @@ function FacilityModal1({
         //handle orgdropdown
         const geturl =
           "https://localhost:7162/api/Organization/getallorganizations";
-        const token = import.meta.env.VITE_TOKEN_KEY;
+        const token = localStorage.getItem("token");
         const getallresponse = await axios.get(geturl, {
           headers: {
             Authorization: `${token}`,

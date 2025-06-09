@@ -15,7 +15,7 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import axios from "axios";
 
 const API_URL = "https://localhost:7162/api/Organization/createorganization";
-const TOKEN = import.meta.env.VITE_TOKEN_KEY;
+const TOKEN = localStorage.getItem("token");
 export default function AdminM2({ setPage, orgdata, setOrgdata }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);

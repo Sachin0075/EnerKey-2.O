@@ -40,7 +40,7 @@ function EditAdmin({ isModalopen, handleClose, orgId }) {
       try {
         //first ill take the data from backend using get and render it
 
-        const token = import.meta.env.VITE_TOKEN_KEY;
+        const token = localStorage.getItem("token");
         const response = await axios.get(
           `https://localhost:7162/api/Organization/getallorganizations`,
           {
@@ -80,7 +80,7 @@ function EditAdmin({ isModalopen, handleClose, orgId }) {
   }, [orgId]);
 
   async function handleSubmit() {
-    const token = import.meta.env.VITE_TOKEN_KEY;
+    const token = localStorage.getItem("token");
     const url = `https://localhost:7162/api/Organization/updateorganization/${orgId}`;
     const response = await axios.put(
       url,

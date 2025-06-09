@@ -68,7 +68,7 @@ function FacilityModal2({
   async function createFacility() {
     try {
       const url = "https://localhost:7108/api/Facility/addFacility";
-      const token = import.meta.env.VITE_TOKEN_KEY;
+      const token = localStorage.getItem("token");
       const facilityResponse = await axios.post(url, value, {
         headers: {
           Authorization: `${token}`,
@@ -90,7 +90,7 @@ function FacilityModal2({
 
   async function createMeter(facilityId) {
     try {
-      const token = import.meta.env.VITE_TOKEN_KEY;
+      const token = localStorage.getItem("token");
       const payload = {
         name: value.metername,
         type: value.type,
