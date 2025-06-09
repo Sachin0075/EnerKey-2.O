@@ -10,6 +10,7 @@ import {
   TextField,
   Stack,
 } from "@mui/material";
+import axios from "axios";
 // import axios from "axios";
 import React, { useEffect } from "react";
 import { useState } from "react";
@@ -41,7 +42,6 @@ function FacilityModal2({
       "readingType",
       "maxMeterValue",
       "consumedQuantityId",
-      // "type" // Uncomment if 'type' is required
     ];
     const allFilled = requiredMeterFields.every((key) => {
       const val = value[key];
@@ -65,10 +65,63 @@ function FacilityModal2({
     setValue((curr) => ({ ...curr, [name]: value }));
     setError((curr) => ({ ...curr, [name]: false }));
   }
+  async function createFacility() {
+    try {
+      const url = "https://localhost:7108/api/Facility/addFacility";
+      const token = import.meta.env.VITE_TOKEN_KEY;
+      const facilityResponse = await axios.post(url, value, {
+        headers: {
+          Authorization: `${token}`,
+        },
+      });
+      console.log("API response data:", facilityResponse.data);
+      if (facilityResponse.status === 201) {
+        const facilityID = facilityResponse.data.facilityId;
+        setValue((prev) => ({ ...prev, facilityId: facilityID }));
+        console.log("Submitting meter readings:", facilityResponse.data);
+        alert("Facility added successfully!");
+        // Create meter after facility is created
+        await createMeter(facilityID);
+      }
+    } catch (error) {
+      console.error("Error fetching organizations:", error);
+    }
+  }
+
+  async function createMeter(facilityId) {
+    try {
+      const token = import.meta.env.VITE_TOKEN_KEY;
+      const payload = {
+        name: value.metername,
+        type: value.type,
+        readingType: value.readingType,
+        maxMeterValue: value.maxMeterValue,
+        consumedQuantityId: value.consumedQuantityId,
+        facilityId: facilityId || value.facilityId,
+      };
+
+      const meterResponse = await axios.post(
+        "https://localhost:7183/api/MeterDefination/addMeter",
+        payload,
+        {
+          headers: {
+            Authorization: `${token}`,
+          },
+        }
+      );
+      if (meterResponse.status === 201) {
+        console.log("Meter API response data:", meterResponse.data);
+        alert("Meter added successfully!");
+        handleClose();
+      }
+    } catch (error) {
+      console.error("Error fetching facility ID:", error);
+    }
+  }
 
   async function handleSubmit(e) {
-    console.log("Submitting meter readings:", value);
     e.preventDefault();
+    await createFacility();
   }
 
   return (

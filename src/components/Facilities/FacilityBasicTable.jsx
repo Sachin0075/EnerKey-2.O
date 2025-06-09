@@ -28,31 +28,32 @@ export default function FacilityBasicTable() {
   const [rows, setRows] = useState([]);
 
   useEffect(() => {
-    async function handleAPi() {
-      const url = "https://localhost:7108/api/Facility/getAllFacilities";
-      const token = import.meta.env.VITE_TOKEN_KEY;
-      try {
-        const response = await axios.get(url, {
-          headers: {
-            Authorization: `${token}`,
-          },
-        });
-        console.log("API response data:", response.data);
-
-        if (Array.isArray(response.data)) {
-          setRows(response.data);
-        } else if (Array.isArray(response.data.data)) {
-          setRows(response.data.data);
-        } else {
-          setRows([]);
-        }
-        // console.log(rows);
-      } catch (error) {
-        console.error("Error fetching facilities:", error);
-      }
-    }
     handleAPi();
   }, []);
+  async function handleAPi() {
+    const url = "https://localhost:7108/api/Facility/getAllFacilities";
+    const token = import.meta.env.VITE_TOKEN_KEY;
+    try {
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `${token}`,
+        },
+      });
+      console.log("API response data:", response.data);
+
+      if (Array.isArray(response.data)) {
+        setRows(response.data);
+      } else if (Array.isArray(response.data.data)) {
+        setRows(response.data.data);
+      } else {
+        setRows([]);
+      }
+
+      //response.data is the complete response from the API
+    } catch (error) {
+      console.error("Error fetching facilities:", error);
+    }
+  }
   function handleAddopen() {
     setIsModalOpen(true);
   }
@@ -72,6 +73,31 @@ export default function FacilityBasicTable() {
   function handleEditClose() {
     setIsEditModalOpen(false);
   }
+  async function handleDelete(row) {
+    const facilityId = row.facilityId;
+    const isdelete = confirm(
+      "Are you sure you want to delete this facility? This action cannot be undone."
+    );
+    if (isdelete) {
+      const url = `https://localhost:7108/api/Facility/deleteFacility/${facilityId}`;
+      const token = import.meta.env.VITE_TOKEN_KEY;
+      try {
+        const response = await axios.delete(url, {
+          headers: {
+            Authorization: `${token}`,
+          },
+        });
+        console.log("API response data:", response.data);
+        if (response.status === 200) {
+          alert(`${row.name} deleted successfully!`);
+          handleAPi(); // Refresh the table after deletion
+        }
+      } catch (error) {
+        console.error("Error deleting facility:", error);
+      }
+    }
+  }
+
   return (
     <>
       {isModalOpen && (
@@ -201,7 +227,13 @@ export default function FacilityBasicTable() {
                     >
                       <EditIcon />
                     </IconButton>
-                    <IconButton color="primary" size="small">
+                    <IconButton
+                      onClick={() => {
+                        handleDelete(row);
+                      }}
+                      color="primary"
+                      size="small"
+                    >
                       <DeleteIcon />
                     </IconButton>
                   </TableCell>

@@ -1,7 +1,11 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
 import "./App.css";
-import { registerLicense } from "@syncfusion/ej2-base";
 import Login from "./components/Login";
 import NotFound from "./components/NotFound";
 import Reports from "./Pages/Reports";
@@ -10,15 +14,16 @@ import Facilities from "./Pages/Facilities";
 import Organization from "./Pages/Organization";
 import Dashboard from "./Pages/Dashboard";
 import NavBar from "./components/NavBar";
+import ForgotPassword from "./components/ForgotPassword";
 
-registerLicense(
-  "Ngo9BigBOggjHTQxAR8/V1NNaF1cWWhPYVJzWmFZfVtgd19CaFZVR2Y/P1ZhSXxWdkBiX35bdHxRQGhUVkd9XUs="
-);
-
-function App() {
+function AppComponent() {
+  const hideNavbar = ["/login", "/forgot"];
+  const location = useLocation();
+  const shouldHide = hideNavbar.includes(location.pathname);
   return (
-    <Router>
-      <NavBar />
+    <>
+      {!shouldHide && <NavBar />}
+
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Dashboard />} />
@@ -26,8 +31,17 @@ function App() {
         <Route path="/facilities" element={<Facilities />} />
         <Route path="/users" element={<Users />} />
         <Route path="/reports" element={<Reports />} />
+        <Route path="/forgot" element={<ForgotPassword />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppComponent />;
     </Router>
   );
 }
