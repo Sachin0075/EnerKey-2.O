@@ -141,9 +141,7 @@ function Login() {
               error={Error.email}
             />
             {Error.email && (
-              <FormHelperText error sx={{ ml: 1 }}>
-                Enter a valid email
-              </FormHelperText>
+              <FormHelperText error>Enter a valid email</FormHelperText>
             )}
 
             <TextField
