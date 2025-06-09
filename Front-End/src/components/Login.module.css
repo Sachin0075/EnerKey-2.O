@@ -1,0 +1,69 @@
+.ems {
+
+    min-height: 100px;
+    min-width: 360px;
+}
+
+.login-main {
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    gap: 220px;
+}
+
+.signinhead {
+    color: #005cbb;
+}
+
+.login {
+    background-color: #ffffffe1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+}
+
+.body {
+    background-color: linear-gradient(135deg,
+            #005cbb 0%,
+            #2990ff 20%,
+            #005cbb 50%,
+            #2990ff 20%,
+            #005cbb 0%);
+}
+
+.loginBodyBG {
+    min-height: 100vh;
+    background-color: #298BF7;
+}
+
+/* Logo styling */
+#logo {
+    font-size: 7em;
+    display: inline-flex;
+
+    align-items: center;
+}
+
+.emsname {
+    font-weight: 600 !important;
+}
+
+.focuscolorchange:focus {
+    border: 2px solid #005cbb;
+    outline: none;
+}
+
+.focuscolorchange {
+    border: groove;
+}
+
+/* .signinbtn
+   {
+    background-color: #CFD3DF;
+    color: #8A8D96;
+   } */
+
+   body{
+    overflow: hidden;
+   }
