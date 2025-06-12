@@ -60,7 +60,7 @@ function Login() {
           transition: Bounce,
         });
         localStorage.setItem("token", token);
-        setTimeout(() => navigate("/"), 1200);
+        navigate("/");
       } else {
         toast.error("Login failed. Please check your credentials.", {
           position: "top-right",
@@ -110,15 +110,39 @@ function Login() {
               EMS
             </i>
           </h1>
-        </div>
+        </div>{" "}
         <div
-          className={`${styles.login} p-8 border-0 rounded-xl min-h-72 max-h-96 min-w-80`}
+          className={`${styles.login} border-0 rounded-2xl min-h-96 min-w-96`}
+          style={{
+            padding: "40px",
+            backgroundColor: "#ffffff",
+            boxShadow: "0 20px 40px rgba(0, 0, 0, 0.1)",
+            border: "1px solid rgba(0, 0, 0, 0.05)",
+          }}
         >
-          <h5
-            className={`${styles.signinhead} text-blue-400 text-xl text-center font-bold`}
-          >
-            Sign In
-          </h5>
+          <div style={{ marginBottom: "32px", textAlign: "center" }}>
+            <h2
+              style={{
+                color: "#1a202c",
+                fontSize: "28px",
+                fontWeight: "700",
+                margin: 0,
+                marginBottom: "8px",
+              }}
+            >
+              Sign
+            </h2>
+            <p
+              style={{
+                color: "#64748b",
+                fontSize: "16px",
+                margin: 0,
+                fontWeight: "400",
+              }}
+            >
+              Sign in to your account
+            </p>
+          </div>
 
           <form
             autoComplete="on"
@@ -126,35 +150,110 @@ function Login() {
               e.preventDefault();
               handleSubmit();
             }}
-            style={{ display: "flex", flexDirection: "column", gap: 15 }}
+            style={{ display: "flex", flexDirection: "column", gap: 24 }}
           >
             <TextField
               required
               name="email"
               autoComplete="email"
-              placeholder="Email*"
+              label="Email Address"
               type="email"
-              className={`${styles.focuscolorchange} bg-white border-1 h-14 p-1  rounded`}
+              variant="outlined"
+              fullWidth
+              size="medium"
               onChange={handleChange}
               onBlur={handleBlur}
               value={value.email}
               error={Error.email}
+              helperText={
+                Error.email ? "Please enter a valid email address" : ""
+              }
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  backgroundColor: "#f8fafc",
+                  borderRadius: 3,
+                  height: "56px",
+                  "&:hover": {
+                    backgroundColor: "#f1f5f9",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#3b82f6",
+                  },
+                  "&.Mui-focused": {
+                    backgroundColor: "#ffffff",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#2563eb",
+                    borderWidth: 2,
+                  },
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#e2e8f0",
+                  },
+                },
+                "& .MuiInputLabel-root": {
+                  color: "#64748b",
+                  fontWeight: 500,
+                  "&.Mui-focused": {
+                    color: "#2563eb",
+                  },
+                },
+                "& .MuiFormHelperText-root": {
+                  marginLeft: 0,
+                  marginTop: "8px",
+                },
+              }}
             />
-            {Error.email && (
-              <FormHelperText error>Enter a valid email</FormHelperText>
-            )}
 
             <TextField
               required
               name="password"
               autoComplete="current-password"
               type={showPassword ? "text" : "password"}
-              placeholder="Password*"
-              className={`${styles.focuscolorchange} bg-white border-1 p-1 h-14 rounded outline-none`}
+              label="Password"
+              variant="outlined"
+              fullWidth
+              size="medium"
               value={value.password}
               onChange={handleChange}
               onBlur={handleBlur}
               error={Error.password}
+              helperText={
+                Error.password ? "Password must be at least 6 characters" : ""
+              }
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  backgroundColor: "#f8fafc",
+                  borderRadius: 3,
+                  height: "56px",
+                  "&:hover": {
+                    backgroundColor: "#f1f5f9",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#3b82f6",
+                  },
+                  "&.Mui-focused": {
+                    backgroundColor: "#ffffff",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#2563eb",
+                    borderWidth: 2,
+                  },
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#e2e8f0",
+                  },
+                },
+                "& .MuiInputLabel-root": {
+                  color: "#64748b",
+                  fontWeight: 500,
+                  "&.Mui-focused": {
+                    color: "#2563eb",
+                  },
+                },
+                "& .MuiFormHelperText-root": {
+                  marginLeft: 0,
+                  marginTop: "8px",
+                },
+              }}
               slotProps={{
                 input: {
                   endAdornment: (
@@ -166,6 +265,13 @@ function Login() {
                         onClick={() => setShowPassword((show) => !show)}
                         edge="end"
                         tabIndex={-1}
+                        sx={{
+                          color: "#64748b",
+                          "&:hover": {
+                            color: "#2563eb",
+                            backgroundColor: "rgba(37, 99, 235, 0.04)",
+                          },
+                        }}
                       >
                         {showPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
@@ -174,27 +280,60 @@ function Login() {
                 },
               }}
             />
-            {Error.password && (
-              <FormHelperText error sx={{ ml: 1 }}>
-                Password must be at least 6 characters
-              </FormHelperText>
-            )}
 
             <Button
-              className="rounded-2xl"
               variant="contained"
-              color={isFilled ? "primary" : "disabled"}
-              style={{
-                cursor: isFilled ? "pointer" : "not-allowed",
-                border: "1px solid black",
-              }}
+              size="large"
+              fullWidth
               disabled={!isFilled}
               type="submit"
+              sx={{
+                mt: 2,
+                py: 2,
+                borderRadius: 3,
+                textTransform: "none",
+                fontSize: "16px",
+                fontWeight: 600,
+                height: "56px",
+                backgroundColor: isFilled ? "#2563eb" : "#e2e8f0",
+                color: isFilled ? "#ffffff" : "#94a3b8",
+                boxShadow: isFilled
+                  ? "0 4px 12px rgba(37, 99, 235, 0.4)"
+                  : "none",
+                "&:hover": {
+                  backgroundColor: isFilled ? "#1d4ed8" : "#e2e8f0",
+                  boxShadow: isFilled
+                    ? "0 8px 20px rgba(37, 99, 235, 0.5)"
+                    : "none",
+                },
+                "&:disabled": {
+                  backgroundColor: "#e2e8f0",
+                  color: "#94a3b8",
+                },
+                "&:active": {
+                  transform: "translateY(1px)",
+                },
+                transition: "all 0.2s ease-in-out",
+              }}
             >
               Sign In
             </Button>
 
-            <Button className="text-blue-400 cursor-pointer  hover:underline">
+            <Button
+              variant="text"
+              sx={{
+                mt: 1,
+                textTransform: "none",
+                color: "#64748b",
+                fontSize: "14px",
+                fontWeight: 500,
+                "&:hover": {
+                  backgroundColor: "rgba(100, 116, 139, 0.04)",
+                  color: "#2563eb",
+                },
+                transition: "all 0.2s ease-in-out",
+              }}
+            >
               Forgot Password?
             </Button>
           </form>

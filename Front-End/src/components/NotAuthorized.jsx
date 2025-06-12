@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-const NotFound = () => {
+const NotAuthorized = () => {
   return (
     <div
       style={{
@@ -26,11 +26,12 @@ const NotFound = () => {
           textShadow: "2px 2px 0 #e0e0e0",
         }}
       >
-        🕵️‍♂️ 404 - Page Not Found
+        🚫 403 - Access Denied
       </h1>
+
       <img
-        src="https://media.giphy.com/media/14uQ3cOFteDaU/giphy.gif"
-        alt="404 not found detective"
+        src="https://media.giphy.com/media/10tIjpzIu8fe0/giphy.gif"
+        alt="Anime facepalm"
         style={{
           width: 220,
           borderRadius: 16,
@@ -38,6 +39,7 @@ const NotFound = () => {
           marginBottom: 24,
         }}
       />
+
       <div
         style={{
           fontSize: 20,
@@ -46,10 +48,13 @@ const NotFound = () => {
           fontWeight: 500,
         }}
       >
+        Oops! You don't have permission to view this page.
+        <br />
         <span style={{ color: "#015CBB", fontWeight: 600 }}>
-          Maybe you typed something wrong, or this page just ran away from you.
+          If you believe this is a mistake, please contact your administrator.
         </span>
       </div>
+
       <Link
         to="/"
         style={{
@@ -66,7 +71,7 @@ const NotFound = () => {
           transition: "background 0.2s",
         }}
       >
-        🏠 Take Me Home (where the pages are!)
+        🏠 Go Back Home
       </Link>
       <div
         style={{
@@ -75,13 +80,11 @@ const NotFound = () => {
           color: "#666",
         }}
       >
-        <em>
-          "404 error: This page is hiding from you, try searching with your eyes
-          open next time!"
-        </em>
+        <em>"Access denied! But hey, at least you found the secret page."</em>
+        <div style={{ fontSize: 24, marginTop: 8 }}>😅🔒🚫</div>
       </div>
     </div>
   );
 };
 
-export default NotFound;
+export default NotAuthorized;

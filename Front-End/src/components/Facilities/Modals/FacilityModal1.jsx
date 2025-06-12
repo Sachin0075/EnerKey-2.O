@@ -13,28 +13,10 @@ import React, { useEffect } from "react";
 import { useState } from "react";
 import FacilityModal2 from "./FacilityModal2";
 import axios from "axios";
-
-const country = [
-  "India",
-  "USA",
-  "Canada",
-  "UK",
-  "Australia",
-  "Germany",
-  "France",
-  "Japan",
-];
-
-const city = [
-  "New York",
-  "Los Angeles",
-  "Chicago",
-  "Houston",
-  "Phoenix",
-  "Philadelphia",
-  "San Antonio",
-  "San Diego",
-];
+import {
+  getAllCountries,
+  getCitiesByCountryId,
+} from "../../../services/DataServices/CountryService";
 
 function FacilityModal1({
   open,
@@ -57,7 +39,25 @@ function FacilityModal1({
   });
 
   const [isFill, setIsFill] = useState(false);
+  const [country, setCountry] = useState([]);
+  const [cityNames, setCityNames] = useState([]);
+  const [selectedID, setSelectedID] = useState(null);
 
+  useEffect(() => {
+    async function fetchCountries() {
+      const country = await getAllCountries();
+      setCountry(country);
+    }
+    fetchCountries();
+  }, []);
+
+  useEffect(() => {
+    async function fetchCities() {
+      const cities = await getCitiesByCountryId(selectedID);
+      setCityNames(cities);
+    }
+    fetchCities();
+  }, [selectedID]);
   useEffect(() => {
     async function fetchOrganizations() {
       try {
@@ -191,9 +191,13 @@ function FacilityModal1({
                 error={error.country}
                 displayEmpty
               >
-                {country.map((name) => (
-                  <MenuItem key={name} value={name}>
-                    {name}
+                {country.map((country) => (
+                  <MenuItem
+                    key={country.id}
+                    value={country.name}
+                    onClick={() => setSelectedID(country.id)}
+                  >
+                    {country.name}
                   </MenuItem>
                 ))}
               </Select>
@@ -216,9 +220,9 @@ function FacilityModal1({
                 error={error.city}
                 displayEmpty
               >
-                {city.map((name) => (
-                  <MenuItem key={name} value={name}>
-                    {name}
+                {cityNames.map((city, index) => (
+                  <MenuItem key={index} value={city}>
+                    {city}
                   </MenuItem>
                 ))}
               </Select>
@@ -317,7 +321,7 @@ function FacilityModal1({
 
             <Button
               variant={isFill ? "contained" : "outlined"}
-              // disabled={!isFill}
+              disabled={!isFill}
               onClick={next}
             >
               Next

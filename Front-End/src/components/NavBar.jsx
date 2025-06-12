@@ -10,6 +10,8 @@ import PersonIcon from "@mui/icons-material/Person";
 import { ArrowBigRightDash } from "lucide-react";
 import Popover from "@mui/material/Popover";
 import { toast } from "react-toastify";
+import { useEffect } from "react";
+import { canAccess } from "../permissions";
 
 const navItems = [
   { name: "Dashboard", path: "/" },
@@ -24,7 +26,7 @@ const Navbar = ({ role }) => {
   const navigate = useNavigate();
   const [activePath, setActivePath] = React.useState(location.pathname);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setActivePath(location.pathname);
   }, [location.pathname]);
 
@@ -70,68 +72,70 @@ const Navbar = ({ role }) => {
               height: "100%",
             }}
           >
-            {navItems.map((item) => {
-              const isActive = activePath === item.path;
-              return (
-                <Button
-                  style={{
-                    paddingBottom: "16px",
-                    paddingLeft: "8px",
-                    paddingRight: "8px",
-                    minWidth: "unset",
-                    overflow: "hidden",
-                    height: "40px",
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                  key={item.name}
-                  component={Link}
-                  to={item.path}
-                  color="inherit"
-                  onClick={() => setActivePath(item.path)}
-                  sx={{
-                    position: "relative",
-                    overflow: "visible",
-                    textTransform: "none",
-                    width: "auto",
-                    maxWidth: 100,
-                    minWidth: 40,
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    background: "none",
-                    boxShadow: "none",
-                    "& span.navbar-underline": {
+            {navItems
+              .filter((item) => canAccess(role, item.name.toLowerCase()))
+              .map((item) => {
+                const isActive = activePath === item.path;
+                return (
+                  <Button
+                    style={{
+                      paddingBottom: "16px",
+                      paddingLeft: "8px",
+                      paddingRight: "8px",
+                      minWidth: "unset",
+                      overflow: "hidden",
+                      height: "40px",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                    key={item.name}
+                    component={Link}
+                    to={item.path}
+                    color="inherit"
+                    onClick={() => setActivePath(item.path)}
+                    sx={{
                       position: "relative",
-                      display: "inline-block",
-                    },
-                    "& span.navbar-underline::after": {
-                      content: '""',
-                      position: "absolute",
-                      left: 0,
-                      right: 0,
-                      bottom: -2,
-                      height: "2px",
-                      backgroundColor: isActive ? "#2890FF" : "transparent",
-                      width: "100%",
-                      transform: isActive
-                        ? "translateX(0)"
-                        : "translateX(-100%)",
-                      transition:
-                        "transform 0.3s ease, background-color 0.3s ease",
-                    },
-                    "&:hover span.navbar-underline::after": !isActive
-                      ? {
-                          transform: "translateX(0)",
-                          backgroundColor: "#2890FF",
-                        }
-                      : {},
-                  }}
-                >
-                  <span className="navbar-underline">{item.name}</span>
-                </Button>
-              );
-            })}
+                      overflow: "visible",
+                      textTransform: "none",
+                      width: "auto",
+                      maxWidth: 100,
+                      minWidth: 40,
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      background: "none",
+                      boxShadow: "none",
+                      "& span.navbar-underline": {
+                        position: "relative",
+                        display: "inline-block",
+                      },
+                      "& span.navbar-underline::after": {
+                        content: '""',
+                        position: "absolute",
+                        left: 0,
+                        right: 0,
+                        bottom: -2,
+                        height: "2px",
+                        backgroundColor: isActive ? "#2890FF" : "transparent",
+                        width: "100%",
+                        transform: isActive
+                          ? "translateX(0)"
+                          : "translateX(-100%)",
+                        transition:
+                          "transform 0.3s ease, background-color 0.3s ease",
+                      },
+                      "&:hover span.navbar-underline::after": !isActive
+                        ? {
+                            transform: "translateX(0)",
+                            backgroundColor: "#2890FF",
+                          }
+                        : {},
+                    }}
+                  >
+                    <span className="navbar-underline">{item.name}</span>
+                  </Button>
+                );
+              })}
             <div style={{ flex: 1 }} />
             <div
               style={{

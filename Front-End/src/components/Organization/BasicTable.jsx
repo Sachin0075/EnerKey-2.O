@@ -115,7 +115,7 @@ export default function BasicTable() {
         />
       )}
       <div style={{ padding: 20, marginBottom: 50 }}>
-        <AddButton />
+        <AddButton fetchOrganizations={fetchOrganizations} />
         <TableContainer
           component={Paper}
           style={{ borderRadius: 16, boxShadow: "0 2px 12px #f0f0f0" }}

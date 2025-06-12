@@ -4,7 +4,7 @@ import Button from "@mui/material/Button";
 import ModalHandle from "./AddOrganization/ModalHandle";
 import FacilityModal1 from "../Facilities/Modals/FacilityModal1";
 
-export default function AddButton() {
+export default function AddButton({ fetchOrganizations }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -20,7 +20,13 @@ export default function AddButton() {
             >
               <span className="font-medium">Add Organization</span>
             </Button>
-            <ModalHandle open={open} handleClose={() => setOpen(false)} />
+            <ModalHandle
+              open={open}
+              handleClose={() => {
+                setOpen(false);
+                fetchOrganizations();
+              }}
+            />
           </Stack>
         </div>
       </div>

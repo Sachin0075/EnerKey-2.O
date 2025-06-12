@@ -13,7 +13,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import React, { useEffect } from "react";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import { useState } from "react";
-import { getAllFacilitiesGroupedByOrg } from "../../services/DataServices/FacilityService";
+import { getAllFacilitiesGroupedByOrgID } from "../../services/DataServices/FacilityService";
 import { getAllOrganizationsIDnName } from "../../services/DataServices/getAllOrganizationsIDnName";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -35,7 +35,7 @@ function SideSelections() {
 
   useEffect(() => {
     async function fetchFacilitiesAndOrgs() {
-      const grouped = await getAllFacilitiesGroupedByOrg();
+      const grouped = await getAllFacilitiesGroupedByOrgID();
       setFacilitiesByOrg(grouped);
       const orgs = await getAllOrganizationsIDnName();
       setOrgNames(orgs); // orgs is { id: name, ... }

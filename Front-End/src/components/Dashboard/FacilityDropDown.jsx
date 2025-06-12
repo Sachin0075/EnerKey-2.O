@@ -3,29 +3,31 @@ import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
-import { useEffect } from "react";
-import { getAllFacilitiesGroupedByOrg } from "../../services/DataServices/FacilityService";
-import { getAllOrganizationsIDnName } from "../../services/DataServices/getAllOrganizationsIDnName";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-export default function SelectSmall() {
-  const [facilitiesByOrg, setFacilitiesByOrg] = React.useState({});
-  const [orgNames, setOrgNames] = React.useState({}); // orgs is { id: name, ... }
+export default function FacilityDropDown({
+  facilitiesByOrgID,
+  orgNames,
+  setSelectedFacilityID,
+}) {
+  const orgIds = Object.keys(facilitiesByOrgID);
+  const [facility, setFacility] = useState("");
 
   useEffect(() => {
-    async function fetchFacilitiesAndOrgs() {
-      const grouped = await getAllFacilitiesGroupedByOrg();
-      setFacilitiesByOrg(grouped);
-      const orgs = await getAllOrganizationsIDnName();
-      setOrgNames(orgs); // orgs is { id: name, ... }
+    if (orgIds.length > 0) {
+      const firstOrgId = orgIds[0];
+      const facilities = facilitiesByOrgID[firstOrgId];
+      if (facilities && facilities.length > 0) {
+        setFacility(facilities[0].facilityId);
+        setSelectedFacilityID &&
+          setSelectedFacilityID(facilities[0].facilityId);
+      }
     }
-    fetchFacilitiesAndOrgs();
-  }, []);
-  const orgIds = Object.keys(facilitiesByOrg);
-  const [facility, setFacility] = useState("");
+  }, [facilitiesByOrgID, setSelectedFacilityID]);
 
   const handleChange = (event) => {
     setFacility(event.target.value);
+    setSelectedFacilityID && setSelectedFacilityID(event.target.value);
   };
 
   return (
@@ -49,11 +51,17 @@ export default function SelectSmall() {
               backgroundColor: "white ",
             }}
           >
-            {orgNames[orgId] || orgId}
+            {orgNames && orgNames[orgId]
+              ? orgNames[orgId]
+              : `Organization ${orgId}`}
           </MenuItem>,
-          facilitiesByOrg[orgId].map((name) => (
-            <MenuItem key={orgId + name} value={name} sx={{ pl: 3 }}>
-              {name}
+          facilitiesByOrgID[orgId].map((facilityObj) => (
+            <MenuItem
+              key={orgId + facilityObj.facilityId}
+              value={facilityObj.facilityId}
+              sx={{ pl: 3 }}
+            >
+              {facilityObj.name}
             </MenuItem>
           )),
         ])}

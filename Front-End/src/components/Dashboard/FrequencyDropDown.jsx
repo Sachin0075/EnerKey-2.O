@@ -4,11 +4,9 @@ import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 
-export default function MonthDropDown() {
-  const [age, setAge] = React.useState("");
-
+export default function FrequencyDropDown({ frequency, setFrequency }) {
   const handleChange = (event) => {
-    setAge(event.target.value);
+    setFrequency(event.target.value);
   };
 
   return (
@@ -17,12 +15,12 @@ export default function MonthDropDown() {
       <Select
         labelId="demo-select-small-label"
         id="demo-select-small"
-        value={age}
+        value={frequency}
         label="Select Frequency"
         onChange={handleChange}
       >
         <MenuItem value={"Year"}>Year</MenuItem>
-        <MenuItem value={"Quater"}>Quater</MenuItem>
+        <MenuItem value={"Quarter"}>Quarter</MenuItem>
         <MenuItem value={"Month"}>Month</MenuItem>
         <MenuItem value={"Week"}>Week</MenuItem>
       </Select>

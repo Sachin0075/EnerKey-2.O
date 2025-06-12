@@ -19,7 +19,7 @@
     "@mantine/notifications": "^8.0.1",
     "@mui/icons-material": "^7.1.0",
     "@mui/joy": "^5.0.0-beta.52",
-    "@mui/material": "^7.1.0",
+    "@mui/material": "^7.1.1",
     "@mui/x-date-pickers": "^8.5.1",
     "@syncfusion/ej2-inputs": "^29.2.4",
     "@syncfusion/ej2-react-grids": "^29.2.4",

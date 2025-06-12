@@ -6,7 +6,7 @@ import React, { useState } from "react";
 
 const ModalHandle = ({ open, handleClose }) => {
   const [page, setPage] = useState(1);
-  const [orgdata, setOrgdata] = useState({
+  const [value, setValue] = useState({
     organization: "",
     email: "",
     contact: "",
@@ -22,7 +22,7 @@ const ModalHandle = ({ open, handleClose }) => {
   });
 
   function handleOrgDataChange(newData) {
-    setOrgdata((prev) => ({ ...prev, ...newData }));
+    setValue((prev) => ({ ...prev, ...newData }));
   }
 
   function changePage() {
@@ -47,14 +47,18 @@ const ModalHandle = ({ open, handleClose }) => {
         {page === 1 ? (
           <OrganizationM1
             setPage={changePage}
-            orgdata={orgdata}
+            orgdata={value}
             handleOrgDataChange={handleOrgDataChange}
+            value={value}
+            setValue={setValue}
           />
         ) : (
           <AdminM2
             setPage={changePage}
-            orgdata={orgdata}
             handleOrgDataChange={handleOrgDataChange}
+            value={value}
+            setValue={setValue}
+            handleClose={handleClose}
           />
         )}
       </DialogContent>

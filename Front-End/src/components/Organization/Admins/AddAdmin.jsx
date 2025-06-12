@@ -13,9 +13,11 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 function AddAdmin({ isModalopen, handleClose, orgID }) {
   const [isFilled, setIsFilled] = useState(false);
+  const [apiError, setApiError] = useState("");
 
   async function handleAPI() {
     const token = localStorage.getItem("token");
@@ -37,8 +39,22 @@ function AddAdmin({ isModalopen, handleClose, orgID }) {
         },
       });
       console.log("Response from API:", response.data);
+      toast.success("Admin added successfully");
+      setApiError(""); // Clear any previous error
       handleClose();
     } catch (error) {
+      if (
+        error.response &&
+        error.response.data &&
+        Array.isArray(error.response.data.error)
+      ) {
+        // Show first error description if available
+        setApiError(
+          error.response.data.error[0]?.description || "An error occurred"
+        );
+      } else {
+        setApiError("An error occurred");
+      }
       console.log(error);
     }
   }
@@ -61,8 +77,22 @@ function AddAdmin({ isModalopen, handleClose, orgID }) {
     const { name, value } = e.target;
     setvalue((prev) => ({ ...prev, [name]: value }));
     setError((prev) => ({ ...prev, [name]: "" }));
-  }
 
+    if (name === "Password" || name === "confirmPassword") {
+      if (value.length < 8) {
+        setError((prev) => ({ ...prev, [name]: true }));
+      } else if (
+        (name === "Password" && value === value.confirmPassword) ||
+        (name === "confirmPassword" && value === value.Password)
+      ) {
+        setError((prev) => ({
+          ...prev,
+          Password: false,
+          confirmPassword: false,
+        }));
+      }
+    }
+  }
   function validateEmail(email) {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(String(email).toLowerCase());
@@ -102,6 +132,11 @@ function AddAdmin({ isModalopen, handleClose, orgID }) {
         </IconButton>
         <DialogContent>
           <Box className=" flex flex-col m-5 gap-5">
+            {apiError && (
+              <Box sx={{ color: "red", mb: 1, fontWeight: "bold" }}>
+                {apiError}
+              </Box>
+            )}
             <TextField
               sx={{ height: "60px", width: "450px" }}
               id="outlined-basic"

@@ -11,27 +11,31 @@ import IconButton from "@mui/material/IconButton";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import Skeleton from "@mui/material/Skeleton";
 
 import AddAdmin from "../Organization/Admins/AddAdmin.jsx";
 import { useState } from "react";
-// import ViewAdmin from "../Organization/Admins/ViewAdmin.jsx";
 import EditAdmin from "../Organization/Admins/EditOrg.jsx";
-import AddButton from "../Organization/AddButton.jsx";
 import ViewMeter from "./ViewMeter.jsx";
 import { useEffect } from "react";
 import axios from "axios";
+import { toast } from "react-toastify";
+import AddMeter from "./AddMeter.jsx";
 
 export default function FacilityBasicTable() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isviewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
   const token = localStorage.getItem("token");
+  const [facilityId, setFacilityId] = useState(null);
 
   useEffect(() => {
     handleAPi();
   }, []);
   async function handleAPi() {
+    setLoading(true);
     const url = "https://localhost:7108/api/Facility/getAllFacilities";
     try {
       const response = await axios.get(url, {
@@ -48,17 +52,20 @@ export default function FacilityBasicTable() {
       } else {
         setRows([]);
       }
-
-      //response.data is the complete response from the API
+      setLoading(false);
     } catch (error) {
       console.error("Error fetching facilities:", error);
+      setRows([]);
+      setLoading(true);
+      toast.error("Failed to fetch facilities. Please try again later.");
     }
   }
-  function handleAddopen() {
-    setIsModalOpen(true);
+  function handleAddopen(facilityId) {
+    setFacilityId(facilityId);
+    setIsAddModalOpen(true);
   }
   function handleAddClose() {
-    setIsModalOpen(false);
+    setIsAddModalOpen(false);
   }
   function handleViewOpen() {
     setIsViewModalOpen(true);
@@ -89,8 +96,9 @@ export default function FacilityBasicTable() {
         });
         console.log("API response data:", response.data);
         if (response.status === 200) {
-          alert(`${row.name} deleted successfully!`);
-          handleAPi(); // Refresh the table after deletion
+          toast.error(`${row.name} deleted successfully!`);
+
+          handleAPi();
         }
       } catch (error) {
         console.error("Error deleting facility:", error);
@@ -100,8 +108,12 @@ export default function FacilityBasicTable() {
 
   return (
     <>
-      {isModalOpen && (
-        <AddAdmin isModalopen={isModalOpen} handleClose={handleAddClose} />
+      {isAddModalOpen && (
+        <AddMeter
+          facilityId={facilityId}
+          isModalopen={isAddModalOpen}
+          handleClose={handleAddClose}
+        />
       )}
 
       {isviewModalOpen && (
@@ -115,13 +127,9 @@ export default function FacilityBasicTable() {
         <EditAdmin
           isModalopen={isEditModalOpen}
           handleClose={handleEditClose}
-          // initialData={{
-          //   adminName: "John Doe",
-          //   email: "}
-          //api integration is to be done",
         />
       )}
-      <div style={{ padding: 20 }}>
+      <div style={{ padding: 20, marginBottom: 20, height: "100%" }}>
         <TableContainer
           component={Paper}
           style={{ borderRadius: 16, boxShadow: "0 2px 12px #f0f0f0" }}
@@ -178,67 +186,81 @@ export default function FacilityBasicTable() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {rows.map((row, idx) => (
-                <TableRow key={idx}>
-                  <TableCell style={{ padding: "8px" }}>{row.name}</TableCell>
-                  <TableCell style={{ padding: "8px" }}>
-                    {row.country}
-                  </TableCell>
-                  <TableCell style={{ padding: "8px" }}>{row.city}</TableCell>
-                  <TableCell style={{ padding: "8px" }}>
-                    {row.streetAddress}
-                  </TableCell>
-                  <TableCell style={{ padding: "8px" }}>
-                    {row.pinCode}
-                  </TableCell>
-                  <TableCell style={{ padding: "8px" }}>
-                    {row.targetA}
-                  </TableCell>
-                  <TableCell style={{ padding: "8px" }}>
-                    {row.targetB}
-                  </TableCell>
-                  <TableCell style={{ padding: "8px" }}>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      onClick={handleViewOpen}
-                      style={{
-                        borderRadius: 12,
-                        textTransform: "none",
-                        fontWeight: 500,
-                      }}
-                    >
-                      View
-                    </Button>
-                  </TableCell>
-                  <TableCell style={{ padding: "8px" }}>
-                    <IconButton
-                      onClick={handleAddopen}
-                      color="primary"
-                      size="small"
-                    >
-                      <AddIcon />
-                    </IconButton>
+              {loading
+                ? Array.from({ length: 5 }).map((_, idx) => (
+                    <TableRow key={idx}>
+                      {Array.from({ length: 9 }).map((_, cellIdx) => (
+                        <TableCell key={cellIdx} style={{ padding: "8px" }}>
+                          <Skeleton variant="rectangular" height={24} />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                : rows.map((row, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell style={{ padding: "8px" }}>
+                        {row.name}
+                      </TableCell>
+                      <TableCell style={{ padding: "8px" }}>
+                        {row.country}
+                      </TableCell>
+                      <TableCell style={{ padding: "8px" }}>
+                        {row.city}
+                      </TableCell>
+                      <TableCell style={{ padding: "8px" }}>
+                        {row.streetAddress}
+                      </TableCell>
+                      <TableCell style={{ padding: "8px" }}>
+                        {row.pinCode}
+                      </TableCell>
+                      <TableCell style={{ padding: "8px" }}>
+                        {row.targetA}
+                      </TableCell>
+                      <TableCell style={{ padding: "8px" }}>
+                        {row.targetB}
+                      </TableCell>
+                      <TableCell style={{ padding: "8px" }}>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={handleViewOpen}
+                          style={{
+                            borderRadius: 12,
+                            textTransform: "none",
+                            fontWeight: 500,
+                          }}
+                        >
+                          View
+                        </Button>
+                      </TableCell>
+                      <TableCell style={{ padding: "8px" }}>
+                        <IconButton
+                          onClick={() => handleAddopen(row.facilityId)}
+                          color="primary"
+                          size="small"
+                        >
+                          <AddIcon />
+                        </IconButton>
 
-                    <IconButton
-                      color="primary"
-                      size="small"
-                      onClick={handleEditOpen}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
-                      onClick={() => {
-                        handleDelete(row);
-                      }}
-                      color="primary"
-                      size="small"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
+                        <IconButton
+                          color="primary"
+                          size="small"
+                          onClick={handleEditOpen}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          onClick={() => {
+                            handleDelete(row);
+                          }}
+                          color="primary"
+                          size="small"
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
             </TableBody>
           </Table>
         </TableContainer>
