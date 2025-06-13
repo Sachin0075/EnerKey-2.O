@@ -11,7 +11,6 @@ import {
 } from "@mui/material";
 import React, { useEffect } from "react";
 import { useState } from "react";
-import FacilityModal2 from "./FacilityModal2";
 import axios from "axios";
 import {
   getAllCountries,
@@ -61,7 +60,6 @@ function FacilityModal1({
   useEffect(() => {
     async function fetchOrganizations() {
       try {
-        //handle orgdropdown
         const geturl =
           "https://localhost:7162/api/Organization/getallorganizations";
         const token = localStorage.getItem("token");
@@ -113,17 +111,9 @@ function FacilityModal1({
   }, [value]);
 
   function handleChange(e) {
-    const { name, value: inputValue } = e.target;
-    if (name === "organizationId") {
-      const orgId = Object.keys(organizations).find(
-        (key) => organizations[key] === inputValue
-      );
-      setValue((curr) => ({ ...curr, organizationId: orgId }));
-      setError((curr) => ({ ...curr, [name]: false }));
-    } else {
-      setValue((curr) => ({ ...curr, [name]: inputValue }));
-      setError((curr) => ({ ...curr, [name]: false }));
-    }
+    const { name, value: val } = e.target;
+    setValue((prev) => ({ ...prev, [name]: val }));
+    setError((prev) => ({ ...prev, [name]: false }));
   }
   function handleBlur(e) {
     const { name, value: val } = e.target;
@@ -140,7 +130,6 @@ function FacilityModal1({
   }
 
   function next() {
-    // Initialize meter fields if not present
     setValue((curr) => ({
       ...curr,
       metername: curr.metername || "",

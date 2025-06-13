@@ -21,6 +21,7 @@ import { useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import AddMeter from "./AddMeter.jsx";
+import EditFacility from "./EditFacility.jsx";
 
 export default function FacilityBasicTable() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -74,7 +75,9 @@ export default function FacilityBasicTable() {
     setIsViewModalOpen(false);
   }
 
-  function handleEditOpen() {
+  function handleEditOpen(facilityId) {
+    setFacilityId(facilityId);
+    console.log("Facility ID:", facilityId);
     setIsEditModalOpen(true);
   }
   function handleEditClose() {
@@ -124,7 +127,13 @@ export default function FacilityBasicTable() {
       )}
 
       {isEditModalOpen && (
-        <EditAdmin
+        // <EditAdmin
+        //   isModalopen={isEditModalOpen}
+        //   handleClose={handleEditClose}
+        // />
+        <EditFacility
+          handleAPi={handleAPi}
+          facilityId={facilityId}
           isModalopen={isEditModalOpen}
           handleClose={handleEditClose}
         />
@@ -245,7 +254,7 @@ export default function FacilityBasicTable() {
                         <IconButton
                           color="primary"
                           size="small"
-                          onClick={handleEditOpen}
+                          onClick={() => handleEditOpen(row.facilityId)}
                         >
                           <EditIcon />
                         </IconButton>

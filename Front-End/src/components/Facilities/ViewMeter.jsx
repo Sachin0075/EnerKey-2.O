@@ -12,9 +12,10 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useEffect } from "react";
 import axios from "axios";
+import { useState } from "react";
 
 export default function ViewMeter({ isModalopen, handleClose }) {
-  const [meterValue, setMeterValue] = React.useState([]);
+  const [meterValue, setMeterValue] = useState([]);
 
   async function fetchMeterData() {
     try {
