@@ -24,7 +24,7 @@ import { SaveIcon } from "lucide-react";
 function ViewAdmin({ isModalopen, handleClose, OrgID }) {
   const [data, setData] = useState([]);
   const [id, setId] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const [editingIdx, setEditingIdx] = useState(null);
   const [newData, setNewData] = useState({
     userName: "",
     email: "",
@@ -111,7 +111,7 @@ function ViewAdmin({ isModalopen, handleClose, OrgID }) {
             admin.id === id ? { ...admin, ...payload } : admin
           )
         );
-        setIsEditing(false);
+        setEditingIdx(null);
         toast.success("Admin updated successfully");
       }
     } catch (error) {
@@ -136,137 +136,203 @@ function ViewAdmin({ isModalopen, handleClose, OrgID }) {
           <CloseIcon />
         </IconButton>
 
-        {isEditing ? (
-          <DialogContent>
-            {data.map((admin, idx) => (
-              <Accordion key={idx}>
+        <DialogContent>
+          {data.length === 0 ? (
+            <Typography>No admins found.</Typography>
+          ) : (
+            data.map((admin, idx) => (
+              <Accordion
+                key={idx}
+                sx={{ mb: 2, borderRadius: 2, boxShadow: 2 }}
+              >
                 <AccordionSummary
                   expandIcon={<ExpandMoreIcon />}
                   aria-controls={`panel${idx}-content`}
                   id={`panel${idx}-header`}
+                  sx={{
+                    minHeight: 56,
+                    background: "#f7faff",
+                    borderBottom: "1px solid #e0e0e0",
+                  }}
                 >
-                  <TextField
-                    component="span"
-                    value={
-                      newData.userName !== ""
-                        ? newData.userName
-                        : admin.userName
-                    }
-                    onChange={(e) => {
-                      setNewData((prev) => ({
-                        ...prev,
-                        userName: e.target.value,
-                      }));
-                    }}
-                  />
-                </AccordionSummary>
-                <AccordionDetails className="flex flex-col gap-6">
-                  <Box className="flex gap-2 flex-row ">
-                    <EmailIcon />
+                  {editingIdx === idx ? (
                     <TextField
-                      variant="outlined"
-                      required
-                      value={newData.email !== "" ? newData.email : admin.email}
-                      onChange={(e) => {
-                        setNewData((prev) => ({
-                          ...prev,
-                          email: e.target.value,
-                        }));
-                      }}
-                    />
-                  </Box>
-                  <Box className="flex gap-2 flex-row ">
-                    <PhoneIcon />
-                    <TextField
-                      variant="outlined"
-                      required
+                      label="Name"
                       value={
-                        newData.phoneNumber !== ""
-                          ? newData.phoneNumber
-                          : admin.phoneNumber
+                        newData.userName !== ""
+                          ? newData.userName
+                          : admin.userName
                       }
                       onChange={(e) => {
                         setNewData((prev) => ({
                           ...prev,
-                          phoneNumber: e.target.value,
+                          userName: e.target.value,
                         }));
                       }}
+                      fullWidth
+                      size="small"
                     />
-                  </Box>
-                </AccordionDetails>
-                <Box className="flex justify-end gap-2 p-2">
-                  <Button
-                    variant="text"
-                    className="flex gap-2  justify-end"
-                    color="info"
-                    onClick={() => handleUpdateAdmin(admin.id)}
-                  >
-                    <SaveIcon />
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    onClick={() => {
-                      setIsEditing(false);
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                </Box>
-              </Accordion>
-            ))}
-          </DialogContent>
-        ) : (
-          <DialogContent>
-            {data.length === 0 ? (
-              <Typography>No admins found.</Typography>
-            ) : (
-              data.map((admin, idx) => (
-                <Accordion key={idx}>
-                  <AccordionSummary
-                    expandIcon={<ExpandMoreIcon />}
-                    aria-controls={`panel${idx}-content`}
-                    id={`panel${idx}-header`}
-                  >
-                    <Typography component="span">
-                      {admin?.userName || "No Name"}
-                    </Typography>
-                  </AccordionSummary>
-                  <AccordionDetails className="flex flex-col gap-6">
-                    <Box className="flex gap-2 flex-row ">
-                      <EmailIcon />
-                      <h2>{admin?.email || "No Email"}</h2>
-                    </Box>
-                    <Box className="flex gap-2 flex-row ">
-                      <PhoneIcon />
-                      <h2>{admin?.phoneNumber || "No Phone"}</h2>
-                    </Box>
-                  </AccordionDetails>
-                  <Box className="flex justify-end gap-2 p-2">
-                    <Button
-                      variant="text"
-                      className="flex gap-2  justify-end"
-                      color="info"
-                      onClick={() => {
-                        setIsEditing(true);
+                  ) : (
+                    <Typography
+                      component="span"
+                      sx={{
+                        width: "100%",
+                        minHeight: 40,
+                        fontSize: "1rem",
+                        display: "flex",
+                        alignItems: "center",
                       }}
                     >
-                      <EditIcon />
-                    </Button>
-
-                    <Button
-                      variant="text"
-                      color="error"
-                      onClick={handleDeleteAdmin}
-                    >
-                      <DeleteIcon />
-                    </Button>
+                      {admin?.userName || "No Name"}
+                    </Typography>
+                  )}
+                </AccordionSummary>
+                <AccordionDetails
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2,
+                    py: 2,
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <EmailIcon />
+                    {editingIdx === idx ? (
+                      <TextField
+                        label="Email"
+                        variant="outlined"
+                        required
+                        value={
+                          newData.email !== "" ? newData.email : admin.email
+                        }
+                        onChange={(e) => {
+                          setNewData((prev) => ({
+                            ...prev,
+                            email: e.target.value,
+                          }));
+                        }}
+                        fullWidth
+                        size="small"
+                      />
+                    ) : (
+                      <Typography
+                        sx={{
+                          width: "100%",
+                          minHeight: 40,
+                          fontSize: "1rem",
+                          display: "flex",
+                          alignItems: "center",
+                          background: "#fff",
+                          borderRadius: 1,
+                          px: 1,
+                        }}
+                      >
+                        {admin?.email || "No Email"}
+                      </Typography>
+                    )}
                   </Box>
-                </Accordion>
-              ))
-            )}
-          </DialogContent>
-        )}
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <PhoneIcon />
+                    {editingIdx === idx ? (
+                      <TextField
+                        label="Phone"
+                        variant="outlined"
+                        required
+                        value={
+                          newData.phoneNumber !== ""
+                            ? newData.phoneNumber
+                            : admin.phoneNumber
+                        }
+                        onChange={(e) => {
+                          setNewData((prev) => ({
+                            ...prev,
+                            phoneNumber: e.target.value,
+                          }));
+                        }}
+                        fullWidth
+                        size="small"
+                      />
+                    ) : (
+                      <Typography
+                        sx={{
+                          width: "100%",
+                          minHeight: 40,
+                          fontSize: "1rem",
+                          display: "flex",
+                          alignItems: "center",
+                          background: "#fff",
+                          borderRadius: 1,
+                          px: 1,
+                        }}
+                      >
+                        {admin?.phoneNumber || "No Phone"}
+                      </Typography>
+                    )}
+                  </Box>
+                </AccordionDetails>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    gap: 1,
+                    p: 1,
+                  }}
+                >
+                  {editingIdx === idx ? (
+                    <>
+                      <Button
+                        onClick={() => handleUpdateAdmin(admin.id)}
+                        size="small"
+                        variant="text"
+                        color="error"
+                        sx={{ color: "black" }}
+                      >
+                        <SaveIcon />
+                      </Button>
+                      <Button
+                        onClick={() => setEditingIdx(null)}
+                        size="small"
+                        variant="text"
+                        color="error"
+                        sx={{ color: "black" }}
+                      >
+                        Cancel
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        variant="text"
+                        color="error"
+                        sx={{ color: "black" }}
+                        onClick={() => {
+                          setEditingIdx(idx);
+                          setNewData({
+                            userName: admin.userName || "",
+                            email: admin.email || "",
+                            phoneNumber: admin.phoneNumber || "",
+                          });
+                        }}
+                        size="small"
+                      >
+                        <EditIcon />
+                      </Button>
+                      <Button
+                        variant="text"
+                        color="error"
+                        sx={{ color: "black" }}
+                        onClick={handleDeleteAdmin}
+                        size="small"
+                      >
+                        <DeleteIcon />
+                      </Button>
+                    </>
+                  )}
+                </Box>
+              </Accordion>
+            ))
+          )}
+        </DialogContent>
       </Dialog>
     </div>
   );

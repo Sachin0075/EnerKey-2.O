@@ -32,48 +32,76 @@ function AddMeter({ isModalopen, handleClose, facilityId }) {
 
   useEffect(() => {
     const allfilled = Object.values(value).every((val) => val.trim() !== "");
-    setIsFilled(allfilled);
-  }, [value]);
+    // Meter name must be at least 3 characters and no errors
+    const noErrors =
+      value.meterName.trim().length >= 3 &&
+      !Object.values(Error).some((err) => err);
+    setIsFilled(allfilled && noErrors);
+  }, [value, Error]);
+
   function handleChange(e) {
-    const { name, value } = e.target;
-    setValue((curr) => ({ ...curr, [name]: value }));
-    setError((curr) => ({ ...curr, [name]: value === "" }));
+    const { name, value: val } = e.target;
+    setValue((curr) => ({ ...curr, [name]: val }));
+    if (name === "meterName") {
+      setError((curr) => ({
+        ...curr,
+        meterName: val.trim().length < 3,
+      }));
+    } else {
+      setError((curr) => ({ ...curr, [name]: val === "" }));
+    }
   }
+
   function handleBlur(e) {
-    const { name, value } = e.target;
-    if (value.trim() === "") {
+    const { name, value: val } = e.target;
+    if (name === "meterName") {
+      setError((prev) => ({ ...prev, meterName: val.trim().length < 3 }));
+    } else if (val.trim() === "") {
       setError((prev) => ({ ...prev, [name]: true }));
     }
   }
 
-  async function handleApi() {
+  async function addMeter() {
     const payload = {
-      name: "DummyMeter",
-      type: "Main Meter",
-      readingType: "Manual",
-      maxMeterValue: 500,
-      consumedQuantityId: 1,
-      facilityId: "e20b26fb-7f15-4386-9c3c-649d6474e506",
+      name: value.meterName,
+      readingType: value.readingType,
+      maxMeterValue: value.maxMeterValue,
+      consumedQuantityId: value.quantityType,
+      facilityId: facilityId,
     };
+    console.log("payload is", payload);
     const url = "https://localhost:7183/api/MeterDefination/addMeter";
     const token = localStorage.getItem("token");
-    const response = await axios.post(url, payload, {
-      headers: {
-        Authorization: token,
-      },
-    });
-    console.log("API Response:", response.data);
-    if (response.status === 201) {
-      toast.success("Meter added successfully");
-    } else {
-      toast.error("Failed to add meter");
+    try {
+      const response = await axios.post(url, payload, {
+        headers: {
+          Authorization: token,
+        },
+      });
+      console.log("API Response:", response.data);
+      if (response.status === 201) {
+        toast.success("Meter added successfully");
+        handleClose();
+      } else {
+        toast.error("Failed to add meter");
+      }
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.status === 409 &&
+        error.response.data?.detail === "Meter name already exists"
+      ) {
+        setError((curr) => ({ ...curr, meterName: true }));
+        toast.error("Meter name already exists. Please use a different name.");
+      } else {
+        toast.error("Failed to add meter");
+      }
     }
   }
-  function handleSubmit() {
+  function handleSubmit(e) {
+    e.preventDefault();
     console.log("Submittted Data:", value);
-    handleApi();
-
-    handleClose();
+    addMeter();
   }
   console.log("Facility ID:", facilityId);
   return (
@@ -106,7 +134,13 @@ function AddMeter({ isModalopen, handleClose, facilityId }) {
               onBlur={handleBlur}
               value={value.meterName}
               error={Error.meterName}
-              helperText={Error.meterName ? "Enter Meter Name" : ""}
+              helperText={
+                Error.meterName
+                  ? value.meterName.trim().length < 3
+                    ? "Meter Name must be at least 3 characters"
+                    : "Enter Meter Name"
+                  : ""
+              }
             />
             <FormControl sx={{ marginTop: 1 }} error={Error.readingType}>
               <InputLabel id="demo-simple-select-label">
@@ -144,9 +178,9 @@ function AddMeter({ isModalopen, handleClose, facilityId }) {
                 onChange={handleChange}
                 onBlur={handleBlur}
               >
-                <MenuItem value="Manual">Water</MenuItem>
-                <MenuItem value="Automatic">Gas</MenuItem>
-                <MenuItem value="Automatic">Electricity</MenuItem>
+                <MenuItem value="1">Electricity</MenuItem>
+                <MenuItem value="2">Water</MenuItem>
+                <MenuItem value="3">Gas</MenuItem>
               </Select>
               {Error.quantityType && (
                 <FormHelperText>Select Quantity Type</FormHelperText>

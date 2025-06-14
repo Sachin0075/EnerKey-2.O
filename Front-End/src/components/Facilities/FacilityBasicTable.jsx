@@ -13,7 +13,6 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Skeleton from "@mui/material/Skeleton";
 
-import AddAdmin from "../Organization/Admins/AddAdmin.jsx";
 import { useState } from "react";
 import ViewMeter from "./ViewMeter.jsx";
 import { useEffect } from "react";
@@ -24,8 +23,8 @@ import EditFacility from "./EditFacility.jsx";
 
 export default function FacilityBasicTable({
   rows,
-  loading,
   getAllFacilities,
+  loading,
 }) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isviewModalOpen, setIsViewModalOpen] = useState(false);
@@ -97,6 +96,8 @@ export default function FacilityBasicTable({
 
       {isviewModalOpen && (
         <ViewMeter
+          rows={rows}
+          getAllFacilities={getAllFacilities}
           facilityId={facilityId}
           isModalopen={isviewModalOpen}
           handleClose={handleViewClose}
