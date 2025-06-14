@@ -1,4 +1,5 @@
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogTitle,
@@ -13,21 +14,24 @@ import Select from "@mui/material/Select";
 import { useState } from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import { useEffect } from "react";
-import { getAllOrganizationsName } from "../../services/DataServices/getAllOrganizationsIDnName";
+import { getAllOrganizationsIDnName } from "../../services/DataServices/getAllOrganizationsIDnName";
+import { toast } from "react-toastify";
+import axios from "axios";
 
-function AddUserModal({ open, handleClose }) {
+function AddUserModal({ open, handleClose, getAllUser }) {
   const [names, setNames] = useState([]);
-
+  console.log(names);
   useEffect(() => {
     async function fetchNames() {
-      const orgNames = await getAllOrganizationsName();
+      const orgNames = await getAllOrganizationsIDnName();
+      console.log("Fetched Organization Names:", orgNames);
+
       setNames(orgNames || []);
     }
-    if (open) fetchNames();
-  }, [open]);
+    fetchNames();
+  }, []);
 
-  const [personName, setPersonName] = useState("");
-  const [form, setForm] = useState({
+  const [value, setValue] = useState({
     userName: "",
     email: "",
     contact: "",
@@ -47,85 +51,48 @@ function AddUserModal({ open, handleClose }) {
   });
 
   const handleFieldChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: false }));
+    const { name, value: val } = e.target;
+    setValue((prev) => ({ ...prev, [name]: val }));
+    setErrors((prev) => {
+      let newErr = { ...prev };
+      if (name === "userName") newErr.userName = !val.trim();
+      if (name === "email") newErr.email = !/^\S+@\S+\.\S+$/.test(val);
+      if (name === "contact") newErr.contact = !/^\d{10}$/.test(val);
+      if (name === "organization") newErr.organization = !val;
+      if (name === "password") newErr.password = !val.trim();
+      if (name === "confirmPassword") {
+        newErr.confirmPassword = !val.trim() || val !== value.password;
+      }
+      if (name === "role") newErr.role = !val;
+      return newErr;
+    });
   };
 
   const handleOrgChange = (event) => {
-    setPersonName(event.target.value);
-    setForm((prev) => ({ ...prev, organization: event.target.value }));
+    setValue((prev) => ({ ...prev, organization: event.target.value }));
     setErrors((prev) => ({ ...prev, organization: false }));
   };
 
   const handleRoleChange = (event) => {
-    setForm((prev) => ({ ...prev, role: event.target.value }));
+    setValue((prev) => ({ ...prev, role: event.target.value }));
     setErrors((prev) => ({ ...prev, role: false }));
   };
 
-  const validate = () => {
-    let valid = true;
-    let newErrors = { ...errors };
-    if (!form.userName.trim()) {
-      newErrors.userName = true;
-      valid = false;
-    }
-    if (!form.email.trim() || !/^\S+@\S+\.\S+$/.test(form.email)) {
-      newErrors.email = true;
-      valid = false;
-    }
-    if (!form.contact.trim() || !/^\d{10}$/.test(form.contact)) {
-      newErrors.contact = true;
-      valid = false;
-    }
-    if (!form.organization) {
-      newErrors.organization = true;
-      valid = false;
-    }
-    if (!form.password.trim()) {
-      newErrors.password = true;
-      valid = false;
-    }
-    if (!form.confirmPassword.trim()) {
-      newErrors.confirmPassword = true;
-      valid = false;
-    }
-    if (form.password !== form.confirmPassword) {
-      newErrors.confirmPassword = true;
-      valid = false;
-    }
-    if (!form.role) {
-      newErrors.role = true;
-      valid = false;
-    }
-    setErrors(newErrors);
-    return valid;
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (validate()) {
-      // Submit logic here
-      alert("User added successfully!");
-      handleClose();
-    }
-  };
-
   const handleFieldBlur = (e) => {
-    const { name, value } = e.target;
-    let error = false;
-    if (name === "userName" && value.trim() === "") error = true;
-    if (name === "email" && (!value.trim() || !/^\S+@\S+\.\S+$/.test(value)))
-      error = true;
-    if (name === "contact" && (!value.trim() || !/^\d{10}$/.test(value)))
-      error = true;
-    if (name === "password" && value.trim() === "") error = true;
-    if (
-      name === "confirmPassword" &&
-      (value.trim() === "" || value !== form.password)
-    )
-      error = true;
-    setErrors((prev) => ({ ...prev, [name]: error }));
+    const { name, value: val } = e.target;
+    setErrors((prev) => {
+      let newErr = { ...prev };
+      if (name === "userName") newErr.userName = !val.trim();
+      if (name === "email") newErr.email = !/^\S+@\S+\.\S+$/.test(val);
+      if (name === "contact") newErr.contact = !/^\d{10}$/.test(val);
+      if (name === "organization") newErr.organization = !val;
+      if (name === "password") newErr.password = !val.trim();
+      if (name === "confirmPassword") {
+        newErr.confirmPassword = !val.trim() || val !== value.password;
+      }
+      if (name === "role") newErr.role = !val;
+      return newErr;
+    });
   };
 
   const handleOrgBlur = (e) => {
@@ -138,6 +105,43 @@ function AddUserModal({ open, handleClose }) {
     if (!e.target.value) {
       setErrors((prev) => ({ ...prev, role: true }));
     }
+  };
+
+  async function createUser() {
+    const payload = {
+      userName: value.userName,
+      email: value.email,
+      phoneNumber: value.contact,
+      password: value.password,
+      confirmPassword: value.confirmPassword,
+      role: value.role,
+      OrganizationId: value.organization,
+    };
+    console.log("Payload:", payload);
+    try {
+      const url = "https://localhost:7266/api/User/register";
+      const token = localStorage.getItem("token");
+      const response = await axios.post(url, payload, {
+        headers: {
+          Authorization: token,
+        },
+      });
+      if (response.status === 201) {
+        toast.success("User added successfully");
+        getAllUser();
+        handleClose();
+      }
+      console.log("User added  Response:", response.data);
+    } catch (error) {
+      console.error("Error adding user:", error);
+      toast.error("Failed to add user. Please try again.");
+      return;
+    }
+  }
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    createUser();
   };
 
   return (
@@ -166,7 +170,7 @@ function AddUserModal({ open, handleClose }) {
               variant="outlined"
               margin="normal"
               fullWidth
-              value={form.userName}
+              value={value.userName}
               onChange={handleFieldChange}
               onBlur={handleFieldBlur}
               error={errors.userName}
@@ -178,7 +182,7 @@ function AddUserModal({ open, handleClose }) {
               variant="outlined"
               margin="normal"
               fullWidth
-              value={form.email}
+              value={value.email}
               onChange={handleFieldChange}
               onBlur={handleFieldBlur}
               error={errors.email}
@@ -190,7 +194,7 @@ function AddUserModal({ open, handleClose }) {
               variant="outlined"
               margin="normal"
               fullWidth
-              value={form.contact}
+              value={value.contact}
               onChange={handleFieldChange}
               onBlur={handleFieldBlur}
               error={errors.contact}
@@ -205,22 +209,17 @@ function AddUserModal({ open, handleClose }) {
               <Select
                 labelId="demo-single-name-label"
                 id="demo-single-name"
-                value={personName}
+                value={value.organization}
                 onChange={handleOrgChange}
                 onBlur={handleOrgBlur}
                 input={<OutlinedInput label="  Organization Name" />}
               >
-                {Array.isArray(names) && names.length > 0 ? (
-                  Object.values(names).map((name) => (
-                    <MenuItem key={name} value={name}>
+                {names &&
+                  Object.entries(names).map(([id, name]) => (
+                    <MenuItem key={id} value={id}>
                       {name}
                     </MenuItem>
-                  ))
-                ) : (
-                  <MenuItem disabled value="">
-                    No organizations found
-                  </MenuItem>
-                )}
+                  ))}
               </Select>
               {errors.organization && (
                 <span style={{ color: "red", fontSize: 12, marginLeft: 14 }}>
@@ -235,7 +234,7 @@ function AddUserModal({ open, handleClose }) {
               variant="outlined"
               margin="normal"
               fullWidth
-              value={form.password}
+              value={value.password}
               onChange={handleFieldChange}
               onBlur={handleFieldBlur}
               error={errors.password}
@@ -248,15 +247,15 @@ function AddUserModal({ open, handleClose }) {
               variant="outlined"
               margin="normal"
               fullWidth
-              value={form.confirmPassword}
+              value={value.confirmPassword}
               onChange={handleFieldChange}
               onBlur={handleFieldBlur}
               error={errors.confirmPassword}
               helperText={
                 errors.confirmPassword
-                  ? form.confirmPassword &&
-                    form.password &&
-                    form.confirmPassword !== form.password
+                  ? value.confirmPassword &&
+                    value.password &&
+                    value.confirmPassword !== value.password
                     ? "Passwords do not match"
                     : "Confirm Password is required"
                   : ""
@@ -266,12 +265,12 @@ function AddUserModal({ open, handleClose }) {
               <InputLabel>Role</InputLabel>
               <Select
                 label="Role"
-                value={form.role}
+                value={value.role}
                 onChange={handleRoleChange}
                 onBlur={handleRoleBlur}
               >
-                <MenuItem value={"Admin"}>Customer Admin</MenuItem>
-                <MenuItem value={"User"}>Registered User</MenuItem>
+                <MenuItem value={"customeradmin"}>Customer Admin</MenuItem>
+                <MenuItem value={"RegisteredUser"}>Registered User</MenuItem>
               </Select>
               {errors.role && (
                 <span style={{ color: "red", fontSize: 12, marginLeft: 14 }}>
@@ -279,7 +278,9 @@ function AddUserModal({ open, handleClose }) {
                 </span>
               )}
             </FormControl>
-            <button type="submit" style={{ display: "none" }}></button>
+            <Button variant="contained" onClick={handleSubmit}>
+              Submit
+            </Button>
           </FormControl>
         </DialogContent>
       </Dialog>

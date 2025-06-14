@@ -5,7 +5,7 @@ import AddUserModal from "./AddUserModal";
 
 // import axios from "axios";
 
-function AddButtonUser() {
+function AddButtonUser({ getAllUser }) {
   const [open, setOpen] = useState(false);
 
   function handleOpen() {
@@ -28,7 +28,11 @@ function AddButtonUser() {
         </Button>
       </Stack>
 
-      <AddUserModal open={open} handleClose={handleClose} />
+      <AddUserModal
+        getAllUser={getAllUser}
+        open={open}
+        handleClose={handleClose}
+      />
     </>
   );
 }
