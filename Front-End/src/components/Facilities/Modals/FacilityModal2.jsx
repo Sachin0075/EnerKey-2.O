@@ -14,6 +14,7 @@ import axios from "axios";
 // import axios from "axios";
 import React, { useEffect } from "react";
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 function FacilityModal2({
   value,
@@ -21,6 +22,7 @@ function FacilityModal2({
   open,
   handleClose,
   setValue,
+  getAllFacilities,
 }) {
   const [error, setError] = useState({
     metername: false,
@@ -32,6 +34,7 @@ function FacilityModal2({
 
   // Add a state to track if all meter fields are filled
   const [isMeterFill, setIsMeterFill] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   useEffect(() => {
     setValue((curr) => ({ ...curr, type: "Main meter" }));
@@ -59,6 +62,9 @@ function FacilityModal2({
     if (value.trim() === "") {
       setError((prev) => ({ ...prev, [name]: true }));
     }
+    if (name === "metername" && value.toString().trim().length < 3) {
+      setError((prev) => ({ ...prev, metername: true }));
+    }
   }
   function handleChange(e) {
     const { name, value } = e.target;
@@ -78,8 +84,8 @@ function FacilityModal2({
       if (facilityResponse.status === 201) {
         const facilityID = facilityResponse.data.facilityId;
         setValue((prev) => ({ ...prev, facilityId: facilityID }));
-        console.log("Submitting meter readings:", facilityResponse.data);
-        alert("Facility added successfully!");
+        // console.log("Submitting meter readings:", facilityResponse.data);
+        toast.success("Facility added successfully!");
         // Create meter after facility is created
         await createMeter(facilityID);
       }
@@ -110,17 +116,19 @@ function FacilityModal2({
         }
       );
       if (meterResponse.status === 201) {
-        console.log("Meter API response data:", meterResponse.data);
-        alert("Meter added successfully!");
+        toast.success("Meter added successfully!");
         handleClose();
+        getAllFacilities();
+        setSubmitError("");
       }
     } catch (error) {
-      console.error("Error fetching facility ID:", error);
+      setSubmitError(error?.response?.data?.title || "Failed to add meter");
+      toast.error(error?.response?.data?.title || "Failed to add meter");
     }
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+  async function handleSubmit() {
+    // e.preventDefault();
     await createFacility();
   }
 
@@ -150,7 +158,11 @@ function FacilityModal2({
             <TextField
               id="outlined"
               error={error.metername}
-              helperText={error.metername ? "Enter Meter name" : ""}
+              helperText={
+                error.metername
+                  ? "Enter Meter name and it should be more than 3 characters"
+                  : ""
+              }
               name="metername"
               value={value.metername}
               onChange={handleChange}
@@ -216,6 +228,12 @@ function FacilityModal2({
               onBlur={handleBlur}
               fullWidth
             />
+
+            {submitError && (
+              <span style={{ color: "red", fontSize: 14, marginBottom: 8 }}>
+                {submitError}
+              </span>
+            )}
 
             <Stack direction={"row"} spacing={2} className="mt-4">
               <Button variant="outlined" onClick={handleBack}>

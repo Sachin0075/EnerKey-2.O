@@ -121,11 +121,15 @@ function FacilityModal1({
       setError((prev) => ({ ...prev, [name]: true }));
     } else if (name === "pinCode" && !/^\d{6}$/.test(val)) {
       setError((prev) => ({ ...prev, pinCode: true }));
+    } else if (name === "streetAddress" && val.trim().length <= 6) {
+      setError((prev) => ({ ...prev, streetAddress: true }));
     } else if (
       (name === "country" || name === "city" || name === "organization") &&
       val === ""
     ) {
       setError((prev) => ({ ...prev, [name]: true }));
+    } else if (name === "targetB" && Number(val) <= Number(value.targetA)) {
+      setError((prev) => ({ ...prev, targetB: true }));
     }
   }
 
@@ -209,8 +213,8 @@ function FacilityModal1({
                 error={error.city}
                 displayEmpty
               >
-                {cityNames.map((city, index) => (
-                  <MenuItem key={index} value={city}>
+                {cityNames.map((city) => (
+                  <MenuItem key={city} value={city}>
                     {city}
                   </MenuItem>
                 ))}
@@ -257,14 +261,13 @@ function FacilityModal1({
                 id="org-select"
                 label="Organization"
                 name="organizationId"
-                value={organizations[value.organizationId] || ""}
+                value={value.organizationId || ""}
                 onChange={handleChange}
                 onBlur={handleBlur}
                 error={error.organizationId}
-                displayEmpty
               >
                 {Object.entries(organizations).map(([id, name]) => (
-                  <MenuItem key={id} value={name}>
+                  <MenuItem key={id} value={id}>
                     {name}
                   </MenuItem>
                 ))}

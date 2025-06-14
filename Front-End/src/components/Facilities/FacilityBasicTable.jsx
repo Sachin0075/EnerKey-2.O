@@ -22,44 +22,21 @@ import { toast } from "react-toastify";
 import AddMeter from "./AddMeter.jsx";
 import EditFacility from "./EditFacility.jsx";
 
-export default function FacilityBasicTable() {
+export default function FacilityBasicTable({
+  rows,
+  loading,
+  getAllFacilities,
+}) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isviewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem("token");
+
   const [facilityId, setFacilityId] = useState(null);
 
   useEffect(() => {
-    handleAPi();
+    getAllFacilities();
   }, []);
-  async function handleAPi() {
-    setLoading(true);
-    const url = "https://localhost:7108/api/Facility/getAllFacilities";
-    try {
-      const response = await axios.get(url, {
-        headers: {
-          Authorization: `${token}`,
-        },
-      });
-      console.log("API response data:", response.data);
 
-      if (Array.isArray(response.data)) {
-        setRows(response.data);
-      } else if (Array.isArray(response.data.data)) {
-        setRows(response.data.data);
-      } else {
-        setRows([]);
-      }
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching facilities:", error);
-      setRows([]);
-      setLoading(true);
-      toast.error("Failed to fetch facilities. Please try again later.");
-    }
-  }
   function handleAddopen(facilityId) {
     setFacilityId(facilityId);
     setIsAddModalOpen(true);
@@ -67,7 +44,8 @@ export default function FacilityBasicTable() {
   function handleAddClose() {
     setIsAddModalOpen(false);
   }
-  function handleViewOpen() {
+  function handleViewOpen(facilityId) {
+    setFacilityId(facilityId);
     setIsViewModalOpen(true);
   }
   function handleViewClose() {
@@ -99,8 +77,7 @@ export default function FacilityBasicTable() {
         console.log("API response data:", response.data);
         if (response.status === 200) {
           toast.error(`${row.name} deleted successfully!`);
-
-          handleAPi();
+          getAllFacilities();
         }
       } catch (error) {
         console.error("Error deleting facility:", error);
@@ -120,6 +97,7 @@ export default function FacilityBasicTable() {
 
       {isviewModalOpen && (
         <ViewMeter
+          facilityId={facilityId}
           isModalopen={isviewModalOpen}
           handleClose={handleViewClose}
         />
@@ -131,7 +109,7 @@ export default function FacilityBasicTable() {
         //   handleClose={handleEditClose}
         // />
         <EditFacility
-          handleAPi={handleAPi}
+          handleAPi={getAllFacilities}
           facilityId={facilityId}
           isModalopen={isEditModalOpen}
           handleClose={handleEditClose}
@@ -231,7 +209,7 @@ export default function FacilityBasicTable() {
                         <Button
                           variant="outlined"
                           size="small"
-                          onClick={handleViewOpen}
+                          onClick={() => handleViewOpen(row.facilityId)}
                           style={{
                             borderRadius: 12,
                             textTransform: "none",

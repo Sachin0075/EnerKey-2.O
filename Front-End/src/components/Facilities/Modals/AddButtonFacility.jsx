@@ -5,7 +5,7 @@ import FacilityModal1 from "./FacilityModal1";
 import FacilityModal2 from "./FacilityModal2";
 // import axios from "axios";
 
-function AddButtonFacility() {
+function AddButtonFacility({ getAllFacilities }) {
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [organizations, setOrganizations] = useState({});
@@ -59,6 +59,7 @@ function AddButtonFacility() {
           open={open}
           handleClose={() => setOpen(false)}
           setValue={setValue}
+          getAllFacilities={getAllFacilities}
         />
       )}
     </Stack>

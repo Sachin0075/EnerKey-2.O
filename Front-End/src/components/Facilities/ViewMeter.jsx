@@ -14,12 +14,13 @@ import { useEffect } from "react";
 import axios from "axios";
 import { useState } from "react";
 
-export default function ViewMeter({ isModalopen, handleClose }) {
+export default function ViewMeter({ isModalopen, handleClose, facilityId }) {
   const [meterValue, setMeterValue] = useState([]);
+  const [isEditing, setIsEditing] = useState(false);
 
   async function fetchMeterData() {
     try {
-      const url = "https://localhost:7183/api/MeterDefination/getAllMeters";
+      const url = `https://localhost:7183/api/MeterDefination/getMeterByFacilityId/${facilityId}`;
       const token = localStorage.getItem("token");
       const response = await axios.get(url, {
         headers: {
@@ -34,6 +35,7 @@ export default function ViewMeter({ isModalopen, handleClose }) {
         meters = response.data.data;
       }
       setMeterValue(meters);
+      console.log("Meter data:", meters);
     } catch (error) {
       console.error("Error fetching meter data:", error);
     }
@@ -47,47 +49,55 @@ export default function ViewMeter({ isModalopen, handleClose }) {
       <Dialog open={isModalopen} onClose={handleClose} className="w-7xl">
         <DialogTitle>View Meters</DialogTitle>
         <DialogContent>
-          {meterValue.length === 0 ? (
-            <Typography>No meters found.</Typography>
+          {meterValue.length > 0 ? (
+            <>
+              {isEditing ? (
+                <div></div>
+              ) : (
+                meterValue.map((meter, idx) => (
+                  <Accordion key={meter.meterId || idx}>
+                    <AccordionSummary
+                      expandIcon={<ExpandMoreIcon />}
+                      aria-controls="panel1-content"
+                      id={`panel1-header-${meter.meterId}`}
+                    >
+                      <Typography component="span">
+                        {meter.name || `Meter ${meter.meterId}`}
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <div>Type: {meter.type}</div>
+                      <div>Reading Type: {meter.readingType}</div>
+                      <div>Quantity Type: {meter.consumedQuantityId}</div>
+                      <div>Max Meter Value: {meter.maxMeterValue}</div>
+                      <AccordionActions>
+                        <Box className="flex justify-end gap-1">
+                          <Button
+                            variant="text"
+                            className="flex gap-2  justify-end"
+                            color="info"
+                            sx={{ color: "black" }}
+                          >
+                            <EditIcon />
+                          </Button>
+                          <Button
+                            variant="text"
+                            color="error"
+                            sx={{ color: "black" }}
+                          >
+                            <DeleteIcon />
+                          </Button>
+                        </Box>
+                      </AccordionActions>
+                    </AccordionDetails>
+                  </Accordion>
+                ))
+              )}
+            </>
           ) : (
-            meterValue.map((meter) => (
-              <Accordion key={meter.meterId}>
-                <AccordionSummary
-                  expandIcon={<ExpandMoreIcon />}
-                  aria-controls="panel1-content"
-                  id={`panel1-header-${meter.meterId}`}
-                >
-                  <Typography component="span">
-                    {meter.name || `Meter ${meter.meterId}`}
-                  </Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <div>Type: {meter.type}</div>
-                  <div>Reading Type: {meter.readingType}</div>
-                  <div>Quantity Type: {meter.consumedQuantityId}</div>
-                  <div>Max Meter Value: {meter.maxMeterValue}</div>
-                  <AccordionActions>
-                    <Box className="flex justify-end gap-1">
-                      <Button
-                        variant="text"
-                        className="flex gap-2  justify-end"
-                        color="info"
-                        sx={{ color: "black" }}
-                      >
-                        <EditIcon />
-                      </Button>
-                      <Button
-                        variant="text"
-                        color="error"
-                        sx={{ color: "black" }}
-                      >
-                        <DeleteIcon />
-                      </Button>
-                    </Box>
-                  </AccordionActions>
-                </AccordionDetails>
-              </Accordion>
-            ))
+            <Box sx={{ textAlign: "center", marginTop: 2 }}>
+              <Typography variant="h6">No Meters Found</Typography>
+            </Box>
           )}
         </DialogContent>
       </Dialog>
