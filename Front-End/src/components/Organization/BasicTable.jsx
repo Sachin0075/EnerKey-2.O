@@ -15,7 +15,7 @@ import AddButton from "./AddButton";
 import AddAdmin from "./Admins/AddAdmin";
 import { useState } from "react";
 import ViewAdmin from "./Admins/ViewAdmin";
-import EditAdmin from "./Admins/EditOrg";
+import EditOrganization from "./EditOrganization.jsx";
 import axios from "axios";
 import { useEffect } from "react";
 
@@ -104,7 +104,8 @@ export default function BasicTable() {
       )}
 
       {isEditModalOpen && (
-        <EditAdmin
+        <EditOrganization
+          fetchOrganizations={fetchOrganizations}
           isModalopen={isEditModalOpen}
           handleClose={handleEditClose}
           orgId={orgId}

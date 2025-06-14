@@ -8,38 +8,68 @@ import {
   Button,
   Dialog,
   DialogTitle,
+  FormControl,
   IconButton,
+  InputLabel,
+  MenuItem,
+  Select,
   TextField,
 } from "@mui/material";
 import axios from "axios";
+import {
+  getAllCountries,
+  getCitiesByCountryId,
+} from "../../services/DataServices/CountryService";
+import { toast } from "react-toastify";
 
-//pending api handle...
-function EditAdmin({ isModalopen, handleClose, orgId }) {
+function EditOrganization({
+  isModalopen,
+  handleClose,
+  orgId,
+  fetchOrganizations,
+}) {
   const [isFilled, setIsFilled] = useState(false);
-  const [organizations, setOrganizations] = useState({
-    orgName: "",
-    orgEMail: "",
-    orgPhoneNumber: "",
-  });
+  const [country, setCountry] = useState([]);
+  const [cityNames, setCityNames] = useState([]);
+  const [selectedID, setSelectedID] = useState(null);
+
   const [value, setValue] = useState({
-    adminName: "",
+    organizationName: "",
     email: "",
     phonenumber: "",
-    Password: "",
-    confirmPassword: "",
+    country: "",
+    city: "",
+    address: "",
+    pinCode: "",
   });
-  const [Error, setError] = useState({
-    adminName: false,
+  const [error, setError] = useState({
+    organizationName: false,
     email: false,
     phonenumber: false,
-    Password: false,
-    confirmPassword: false,
+    country: false,
+    city: false,
+    address: false,
+    pinCode: false,
   });
+
+  useEffect(() => {
+    async function fetchCountries() {
+      const country = await getAllCountries();
+      setCountry(country);
+    }
+    fetchCountries();
+  }, []);
+
+  useEffect(() => {
+    async function fetchCities() {
+      const cities = await getCitiesByCountryId(selectedID);
+      setCityNames(cities);
+    }
+    fetchCities();
+  }, [selectedID]);
   useEffect(() => {
     async function handleAPI() {
       try {
-        //first ill take the data from backend using get and render it
-
         const token = localStorage.getItem("token");
         const response = await axios.get(
           `https://localhost:7162/api/Organization/getallorganizations`,
@@ -61,16 +91,16 @@ function EditAdmin({ isModalopen, handleClose, orgId }) {
         const foundOrg = orgList.find(
           (org) => String(org.organizationId) === String(orgId)
         );
-        setOrganizations({
-          orgName: foundOrg?.name || "",
-          orgEMail: foundOrg?.email || "",
-          orgPhoneNumber: foundOrg?.contact || "",
-        });
+
         setValue((prev) => ({
           ...prev,
-          adminName: foundOrg?.name || "",
+          organizationName: foundOrg?.name || "",
           email: foundOrg?.email || "",
           phonenumber: foundOrg?.contact || "",
+          country: foundOrg.country || "",
+          city: foundOrg.city || "",
+          address: foundOrg.streetAddress || "",
+          pinCode: foundOrg.postalCode || "",
         }));
       } catch (error) {
         console.log(error);
@@ -82,25 +112,31 @@ function EditAdmin({ isModalopen, handleClose, orgId }) {
   async function handleSubmit() {
     const token = localStorage.getItem("token");
     const url = `https://localhost:7162/api/Organization/updateorganization/${orgId}`;
-    const response = await axios.put(
-      url,
-      {
-        name: "HelloOrg",
-        contact: "9110232822",
-        email: "Sachina@gmail.com",
-        country: "India",
-        city: "Kadri",
-        postalCode: "575002",
-        streetAddress: "Kadri, Mangalore",
-      },
-      {
+    const payload = {
+      name: value.organizationName,
+      contact: value.phonenumber,
+      email: value.email,
+      country: value.country,
+      city: value.city,
+      postalCode: value.pinCode,
+      streetAddress: value.address,
+    };
+    // console.log(value); // Log the updated form values
+    try {
+      const response = await axios.put(url, payload, {
         headers: {
           Authorization: `${token}`,
           "Content-Type": "application/json",
         },
+      });
+      if (response.status === 200) {
+        toast.success("Updated Successfully");
+        handleClose();
+        fetchOrganizations();
       }
-    );
-    console.log(response);
+    } catch (error) {
+      toast.error(error);
+    }
   }
 
   function handleChange(e) {
@@ -153,13 +189,13 @@ function EditAdmin({ isModalopen, handleClose, orgId }) {
             <TextField
               sx={{ height: "60px", width: "450px" }}
               id="edit-admin-name"
-              label="Admin Name"
+              label="Organization Name"
               variant="outlined"
               onChange={handleChange}
-              name="adminName"
-              value={value.adminName}
-              error={Error.adminName}
-              helperText={Error.adminName ? "Enter Admin name" : ""}
+              name="organizationName"
+              value={value.organizationName}
+              error={error.organizationName}
+              helperText={error.organizationName ? "Enter Admin name" : ""}
               onBlur={handleBlur}
             />
             <TextField
@@ -169,48 +205,90 @@ function EditAdmin({ isModalopen, handleClose, orgId }) {
               value={value.email}
               onChange={handleChange}
               onBlur={handleBlur}
-              error={Error.email}
-              helperText={Error.email ? "Enter a valid Email" : ""}
+              error={error.email}
+              helperText={error.email ? "Enter a valid Email" : ""}
+              sx={{ height: "60px", width: "450px" }}
+            />
+            <FormControl sx={{ width: "440px" }} error={error.country}>
+              <InputLabel id="country-select-label">Country</InputLabel>
+              <Select
+                labelId="country-select-label"
+                id="country-select"
+                label="Country"
+                name="country"
+                value={value.country}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={error.country}
+                displayEmpty
+                sx={{ marginTop: 1 }}
+              >
+                {country.map((country) => (
+                  <MenuItem
+                    key={country.id}
+                    value={country.name}
+                    onClick={() => setSelectedID(country.id)}
+                  >
+                    {country.name}
+                  </MenuItem>
+                ))}
+              </Select>
+              {error.country && (
+                <span style={{ color: "red", fontSize: 12, marginLeft: 14 }}>
+                  Select Country
+                </span>
+              )}
+            </FormControl>
+            <FormControl sx={{ width: "440px" }} error={error.city}>
+              <InputLabel id="city-select-label">City</InputLabel>
+              <Select
+                labelId="city-select-label"
+                id="city-select"
+                label="City"
+                name="city"
+                value={value.city}
+                sx={{ marginTop: 1 }}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={error.city}
+                displayEmpty
+              >
+                {cityNames.map((city, index) => (
+                  <MenuItem key={index} value={city}>
+                    {city}
+                  </MenuItem>
+                ))}
+              </Select>
+              {error.city && (
+                <span style={{ color: "red", fontSize: 12, marginLeft: 14 }}>
+                  Select City
+                </span>
+              )}
+            </FormControl>
+            <TextField
+              label="Address"
+              variant="outlined"
+              name="address"
+              value={value.address}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              error={error.address}
+              helperText={error.address ? "Enter a address" : ""}
               sx={{ height: "60px", width: "450px" }}
             />
             <TextField
-              label="Phone Number"
+              label="pincode"
               variant="outlined"
-              error={Error.phonenumber}
-              helperText={Error.phonenumber ? "Enter Phone Number" : ""}
-              name="phonenumber"
-              value={organizations.orgPhoneNumber}
+              name="pinCode"
+              value={value.pinCode}
               onChange={handleChange}
               onBlur={handleBlur}
+              error={error.pinCode}
+              helperText={error.pinCode ? "Enter a proper PinCode " : ""}
               sx={{ height: "60px", width: "450px" }}
-            />
-            <TextField
-              label="Password"
-              type="password"
-              name="Password"
-              value={value.Password}
-              variant="outlined"
-              sx={{ height: "60px", width: "450px" }}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              error={Error.Password}
-              helperText={Error.Password ? "Enter Password" : ""}
-            />
-            <TextField
-              label="Confirm Password"
-              type="password"
-              variant="outlined"
-              sx={{ height: "60px", width: "450px" }}
-              name="confirmPassword"
-              value={value.confirmPassword}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              error={Error.confirmPassword}
-              helperText={
-                Error.confirmPassword ? "Confirm Password does not match" : ""
-              }
             />
           </Box>
+
           <Box className="flex justify-end gap-3 m-5">
             <Button
               variant="outlined"
@@ -235,4 +313,4 @@ function EditAdmin({ isModalopen, handleClose, orgId }) {
   );
 }
 
-export default EditAdmin;
+export default EditOrganization;

@@ -69,12 +69,7 @@ const EditFacility = () => {
         value={value.targetB}
         onChange={(e) => setValue({ ...value, targetB: e.target.value })}
       />
-      <Button
-        variant="contained"
-        color="primary"
-        type="submit"
-        onClick={next}
-      >
+      <Button variant="contained" color="primary" type="submit" onClick={next}>
         Save Changes
       </Button>
     </form>

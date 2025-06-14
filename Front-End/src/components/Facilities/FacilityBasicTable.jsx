@@ -15,7 +15,6 @@ import Skeleton from "@mui/material/Skeleton";
 
 import AddAdmin from "../Organization/Admins/AddAdmin.jsx";
 import { useState } from "react";
-import EditAdmin from "../Organization/Admins/EditOrg.jsx";
 import ViewMeter from "./ViewMeter.jsx";
 import { useEffect } from "react";
 import axios from "axios";
