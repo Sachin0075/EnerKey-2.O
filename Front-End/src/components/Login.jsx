@@ -41,8 +41,8 @@ function Login() {
     if (!isFilled) return;
     const url = "https://localhost:7266/api/User/login";
     const payload = {
-      email: value.email,
-      password: value.password,
+      email: value.email.toString().toLowerCase(),
+      password: value.password.toString(),
     };
     try {
       const response = await axios.post(url, payload);
