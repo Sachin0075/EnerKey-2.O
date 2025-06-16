@@ -1,68 +1,53 @@
+import React, { useEffect } from "react";
 import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
   Typography,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  Box,
+  Tabs,
+  Tab,
+  Checkbox,
 } from "@mui/material";
-import dayjs from "dayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import React, { useEffect } from "react";
-import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
-import { useState } from "react";
-import { getAllFacilitiesGroupedByOrgID } from "../../services/DataServices/FacilityService";
-import { getAllOrganizationsIDnName } from "../../services/DataServices/getAllOrganizationsIDnName";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Tabs from "@mui/material/Tabs";
-import Tab from "@mui/material/Tab";
-import Checkbox from "@mui/material/Checkbox";
 import BoltIcon from "@mui/icons-material/Bolt";
 import OpacityIcon from "@mui/icons-material/Opacity";
 import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
+import axios from "axios";
+import dayjs from "dayjs";
 
-function SideSelections() {
-  const [facility, setFacility] = useState("");
-  const [facilitiesByOrg, setFacilitiesByOrg] = useState({});
-  const [orgNames, setOrgNames] = useState({});
-  const [tabValue, setTabValue] = useState(0);
-  const [selectQuantity, setSelectQuantity] = useState(true);
-  const [selectedQuantities, setSelectedQuantities] = useState(["Electricity"]);
-  const [value, setValue] = React.useState(dayjs("2022-04-17"));
-
-  useEffect(() => {
-    async function fetchFacilitiesAndOrgs() {
-      const grouped = await getAllFacilitiesGroupedByOrgID();
-      setFacilitiesByOrg(grouped);
-      const orgs = await getAllOrganizationsIDnName();
-      setOrgNames(orgs); // orgs is { id: name, ... }
-    }
-    fetchFacilitiesAndOrgs();
-  }, []);
-
-  const orgIds = Object.keys(facilitiesByOrg);
-
-  const handleChange = (event) => {
-    setFacility(event.target.value);
-  };
-
-  const meterOptions = [
-    {
-      label: "meter beta",
-      value: "meter beta",
-    },
-    {
-      label: "meter alpha",
-      value: "meter alpha",
-    },
-    {
-      label: "meter gamma",
-      value: "meter gamma",
-    },
-  ];
+function SideSelections({
+  orgIds = [],
+  facilitiesByOrg = {},
+  orgNames = {},
+  facilityID = "",
+  meterId,
+  meterOptions,
+  setMeterOptions,
+  setMeterId,
+  handleChange,
+  tabValue,
+  setTabValue,
+  selectQuantity,
+  setSelectQuantity,
+  selectedQuantities,
+  setSelectedQuantities,
+  DateValue,
+  setDateValue,
+  periodOptions,
+  selectedPeriod,
+  setSelectedPeriod,
+  selectedFrequency,
+  setSelectedFrequency,
+}) {
+  console.log("meter options:", meterOptions);
 
   const quantityOptions = [
     {
@@ -82,11 +67,54 @@ function SideSelections() {
     },
   ];
 
-  const handleQuantityToggle = (value) => {
-    setSelectedQuantities((prev) =>
-      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
-    );
+  const getMetersByFacility = React.useCallback(
+    async (facilityId) => {
+      console.log("Fetching meters for facility ID:", facilityId);
+
+      try {
+        const token = localStorage.getItem("token");
+        const url = `https://localhost:7183/api/MeterDefination/getMeterByFacilityId/${facilityId}`; //id is working
+        const response = await axios.get(url, {
+          headers: {
+            Authorization: token,
+          },
+        });
+        if (response.status === 200) {
+          setMeterOptions(response.data);
+          console.log("Meters fetched successfully:", response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching meters:", error);
+      }
+    },
+    [setMeterOptions]
+  );
+  useEffect(() => {
+    if (facilityID) {
+      getMetersByFacility(facilityID);
+    }
+  }, [facilityID, getMetersByFacility]);
+  const handleQuantityToggle = (val) => {
+    setSelectedQuantities((prev) => {
+      const updated = prev.includes(val)
+        ? prev.filter((v) => v !== val)
+        : [...prev, val];
+      console.log("setSelectedQuantities called with:", val);
+      console.log("All selectedQuantities after update:", updated);
+      return updated;
+    });
   };
+  // Set default facility on mount if not set
+  useEffect(() => {
+    if (!facilityID && Array.isArray(orgIds) && orgIds.length > 0) {
+      const firstOrg = orgIds[0];
+      const facilities = facilitiesByOrg[firstOrg];
+      if (facilities && facilities.length > 0) {
+        const firstFacilityId = facilities[0].facilityId || facilities[0];
+        handleChange({ target: { value: firstFacilityId } });
+      }
+    }
+  }, [facilityID, orgIds, facilitiesByOrg, handleChange]);
 
   return (
     <>
@@ -107,34 +135,40 @@ function SideSelections() {
               <Select
                 labelId="facility-select-label"
                 id="facility-select"
-                value={facility}
+                value={facilityID}
                 label="Choose Facility"
                 onChange={handleChange}
               >
-                {orgIds.map((orgId) => [
-                  <MenuItem
-                    key={orgId}
-                    value=""
-                    disabled
-                    sx={{
-                      fontWeight: "bold",
-                      color: "red !important",
-                      backgroundColor: "white ",
-                    }}
-                  >
-                    {orgNames[orgId] || orgId}
-                  </MenuItem>,
-                  facilitiesByOrg[orgId].map((name) => (
-                    <MenuItem key={orgId + name} value={name} sx={{ pl: 3 }}>
-                      {name}
-                    </MenuItem>
-                  )),
-                ])}
+                {Array.isArray(orgIds) &&
+                  orgIds.map((orgId) => [
+                    <MenuItem
+                      key={`org-${orgId}`}
+                      value=""
+                      disabled
+                      sx={{
+                        fontWeight: "bold",
+                        color: "red !important",
+                        backgroundColor: "white ",
+                      }}
+                    >
+                      {orgNames[orgId] || orgId}
+                    </MenuItem>,
+                    facilitiesByOrg[orgId]?.map((facilityObj) => (
+                      <MenuItem
+                        key={`facility-${orgId}-${
+                          facilityObj.facilityId || facilityObj
+                        }`}
+                        value={facilityObj.facilityId || facilityObj}
+                        sx={{ pl: 3 }}
+                      >
+                        {facilityObj.name || facilityObj}
+                      </MenuItem>
+                    )),
+                  ])}
               </Select>
             </FormControl>
           </AccordionDetails>
         </Accordion>
-
         <Accordion className="w-[300px]">
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Typography>Qaunity/Meter</Typography>
@@ -163,7 +197,6 @@ function SideSelections() {
                 />
               </Tabs>
             </Box>
-
             {selectQuantity ? (
               <div className="flex flex-col gap-1 mt-1">
                 {quantityOptions.map((option) => (
@@ -191,7 +224,7 @@ function SideSelections() {
               <div className="flex flex-col gap-1 mt-1">
                 {meterOptions.map((option) => (
                   <div
-                    key={option.value}
+                    key={option.id}
                     onClick={() => handleQuantityToggle(option.value)}
                     className={`flex items-center cursor-pointer px-2 py-1 rounded border transition-all duration-200 w-40 h-9 select-none shadow-sm ${
                       selectedQuantities.includes(option.value)
@@ -199,17 +232,13 @@ function SideSelections() {
                         : "border-gray-200 bg-white"
                     }`}
                   >
-                    {option.icon}
-                    <span className="font-medium text-base flex-1">
-                      {option.label}
-                    </span>
+                    {option.name}
                   </div>
                 ))}
               </div>
             )}
           </AccordionDetails>
         </Accordion>
-
         <Accordion className="w-[300px] ">
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Typography>Time Period</Typography>
@@ -222,62 +251,68 @@ function SideSelections() {
                   labelId="period-select-label"
                   id="period-select"
                   label="Period"
-                  defaultValue={"Year"}
+                  value={selectedPeriod}
+                  onChange={(e) => {
+                    setSelectedPeriod(e.target.value);
+                    // console.log("Selected period changed to:", e.target.value);
+                  }}
                 >
-                  <MenuItem value="Year">Year</MenuItem>
-                  <MenuItem value="Quarter">Quarter</MenuItem>
-                  <MenuItem value="Month">Month</MenuItem>
-                  <MenuItem value="Week">Week</MenuItem>
+                  {Object.keys(periodOptions).map((key) => (
+                    <MenuItem key={key} value={key}>
+                      {key}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
-
               <FormControl sx={{ width: "100%" }}>
-                <InputLabel id="year-select-label">Frequency</InputLabel>
+                <InputLabel id="frequency-select-label">Frequency</InputLabel>
                 <Select
-                  labelId="Frequency-select-label"
-                  id="Frequency-select"
+                  labelId="frequency-select-label"
+                  id="frequency-select"
                   label="Frequency"
-                  defaultValue={"Month"}
+                  value={selectedFrequency}
+                  onChange={(e) => setSelectedFrequency(e.target.value)}
                 >
-                  <MenuItem value="Month">Month</MenuItem>
-                  <MenuItem value="Day">Day</MenuItem>
-                  <MenuItem value="Week">Week</MenuItem>
+                  {periodOptions[selectedPeriod].map((freq) => (
+                    <MenuItem key={freq} value={freq}>
+                      {freq}
+                    </MenuItem>
+                  ))}
                 </Select>
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 2,
-                      width: "100%",
-                      marginTop: 2,
-                    }}
-                  >
-                    <DatePicker
-                      label="Uncontrolled picker"
-                      defaultValue={dayjs("2022-04-17")}
-                    />
-                    <DatePicker
-                      label="Controlled picker"
-                      value={value}
-                      onChange={(newValue) => setValue(newValue)}
-                    />
-                  </Box>
-                </LocalizationProvider>
               </FormControl>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  label="Select Date"
+                  value={DateValue ? dayjs(DateValue) : null}
+                  onChange={(val) => setDateValue(val)}
+                  sx={{ width: "100%" }}
+                />
+              </LocalizationProvider>
             </Box>
           </AccordionDetails>
         </Accordion>
-        <Accordion className="w-[300px]">
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Accordion className="w-[300px] ">
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="panel1-content"
+            id="panel1-header"
+          >
             <Typography>Additional Settings</Typography>
           </AccordionSummary>
           <AccordionDetails>
-            <FormControl sx={{ width: "100%" }}>
-              <InputLabel>Consumtion-Target</InputLabel>
-              <Select label="Consumtion-Target">
-                <MenuItem value="Min-Consumption">Min-Consumption</MenuItem>
-                <MenuItem value="Max-Consumption">Max-Consumption</MenuItem>
+            <FormControl fullWidth>
+              <InputLabel id="facility-select-label">
+                Consumption Target
+              </InputLabel>
+              <Select
+                labelId="consumption-select-label"
+                id="consumption-select"
+                value={facilityID}
+                label="Consumption Target"
+                onChange={handleChange}
+              >
+                <MenuItem value="MinConsumption">Min - Consumption</MenuItem>
+                <MenuItem value="MaxConsumption">Max - Consumption</MenuItem>
               </Select>
             </FormControl>
           </AccordionDetails>

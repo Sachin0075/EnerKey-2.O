@@ -9,6 +9,10 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { useEffect } from "react";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { useState } from "react";
 
 ChartJS.register(
   CategoryScale,
@@ -93,7 +97,115 @@ const options = {
   },
 };
 
-function ReportChart() {
+function ReportChart({
+  tabValue,
+  facilityID,
+  selectedQuantities,
+  DateValue,
+  selectedPeriod,
+  selectedFrequency,
+}) {
+  const [chartData, setChartData] = useState([]);
+  const [quantityArray, setQuantityArray] = useState([]);
+
+  useEffect(() => {
+    if (tabValue === 0) {
+      const qArr = checkQuantity(selectedQuantities);
+      qArr.forEach((qid) => {
+        updateChartByFacility(qid);
+        console.log("Quantity ID:", qid);
+      });
+    } else {
+      updateChartByMeter();
+    }
+  }, [
+    selectedQuantities,
+    selectedPeriod,
+    selectedFrequency,
+    DateValue,
+    facilityID,
+    tabValue,
+  ]);
+
+  async function updateChartByFacility(qid) {
+    try {
+      const url = "https://localhost:7161/api/MeterReadings/get-meterby-query";
+      const periodlength = checkFrequency(selectedFrequency);
+      // console.log("Selected Frequency:", selectedFrequency);
+
+      setQuantityArray(checkQuantity(selectedQuantities));
+      // console.log("Checked Quantity is ", checkQuantity(selectedQuantities));[1,3]
+
+      const payload = {
+        resolution: selectedPeriod,
+        periodLength: periodlength,
+        facilityId: facilityID,
+        quantityId: qid,
+        start: DateValue,
+      };
+      const token = localStorage.getItem("token");
+      const response = await axios.post(url, payload, {
+        headers: { Authorization: token },
+      });
+      if (response.status === 200) {
+        toast.success("Chart updated successfully!");
+        setChartData(response.data);
+        console.log("Chart data:", response.data);
+      }
+    } catch (error) {
+      console.error("Error updating chart by facility:", error);
+      toast.error("Failed to update chart. Please try again.");
+    }
+  }
+  function checkFrequency(freq) {
+    return freq === "Year"
+      ? { year: 1 }
+      : freq === "Month"
+      ? { Month: 1 }
+      : freq === "Quarter"
+      ? { Month: 3 }
+      : freq === "Week"
+      ? { week: 1 }
+      : { day: 1 };
+  }
+  // Utility function to map quantity names to IDs
+  function checkQuantity(selectedQuantities) {
+    const quantityMap = {
+      Electricity: 1,
+      Water: 2,
+      Gas: 3,
+    };
+    return selectedQuantities.map((q) => quantityMap[q]).filter(Boolean);
+  }
+
+  async function updateChartByMeter() {
+    try {
+      const url = "https://localhost:7161/api/MeterReadings/get-meterby-query";
+      const periodlength = checkFrequency(selectedFrequency);
+      const quantityId = checkQuantity(selectedQuantities);
+      const payload = {
+        resolution: { selectedPeriod },
+        periodLength: periodlength,
+        facilityId: { facilityID },
+        quantityId: quantityId,
+        start: DateValue,
+      };
+      const token = localStorage.getItem("token");
+      const response = await axios.post(url, payload, {
+        headers: { Authorization: token },
+      });
+
+      if (response.status === 200) {
+        toast.success("Chart updated successfully!");
+        setChartData(response.data);
+        console.log("Chart data:", response.data);
+      }
+    } catch (error) {
+      console.error("Error updating chart by meter:", error);
+      toast.error("Failed to update chart by meter. Please try again.");
+    }
+  }
+
   return (
     <div
       style={{
@@ -103,9 +215,14 @@ function ReportChart() {
         background: "#fff",
         borderRadius: 8,
         padding: 24,
+        overflowX: "auto",
       }}
     >
-      <Bar data={data} options={options} />
+      <div style={{ minWidth: 750, whiteSpace: "nowrap" }}>
+        <Bar data={data} options={options} />
+        <Bar data={data} options={options} />
+        <Bar data={data} options={options} />
+      </div>
     </div>
   );
 }
