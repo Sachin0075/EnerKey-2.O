@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import ListItemText from "@mui/material/ListItemText";
 import {
@@ -46,6 +46,8 @@ function SideSelections({
   setSelectQuantity,
   selectedQuantities,
   setSelectedQuantities,
+  selectedMeters: selectedMetersProp,
+  setSelectedMeters: setSelectedMetersProp,
   inspectionDateValue,
   setInspectionDateValue,
   ComparisonDateValue,
@@ -77,9 +79,14 @@ function SideSelections({
     },
   ];
 
+  // console.log("Meter options:", meterOptions);
+
+  // const [selectedMetersState, setSelectedMetersState] = React.useState([]);
+
   const getMetersByFacility = React.useCallback(
     async (facilityId) => {
       console.log("Fetching meters for facility ID:", facilityId);
+      console.log("selectedMeters:", selectedMeters);
 
       try {
         const token = localStorage.getItem("token");
@@ -104,13 +111,24 @@ function SideSelections({
       getMetersByFacility(facilityID);
     }
   }, [facilityID, getMetersByFacility]);
+  // When user selects a meter, clear selectedQuantities to ensure only one mode is active
+  const handleMeterToggle = (val) => {
+    setSelectedQuantities([]); // Clear quantities when meters are selected
+    setSelectedMeters((prev) => {
+      const updated = prev.includes(val)
+        ? prev.filter((v) => v !== val)
+        : [...prev, val];
+      return updated;
+    });
+  };
+
+  // When user selects a quantity, clear selectedMeters to ensure only one mode is active
   const handleQuantityToggle = (val) => {
+    setSelectedMeters([]); // Clear meters when quantities are selected
     setSelectedQuantities((prev) => {
       const updated = prev.includes(val)
         ? prev.filter((v) => v !== val)
         : [...prev, val];
-      console.log("setSelectedQuantities called with:", val);
-      console.log("All selectedQuantities after update:", updated);
       return updated;
     });
   };
@@ -125,6 +143,38 @@ function SideSelections({
       }
     }
   }, [facilityID, orgIds, facilitiesByOrg, handleChange]);
+
+  // Local state for selectedMeters if not provided by parent
+  const [localSelectedMeters, setLocalSelectedMeters] = React.useState([]);
+  const selectedMeters =
+    selectedMetersProp !== undefined ? selectedMetersProp : localSelectedMeters;
+  const setSelectedMeters =
+    setSelectedMetersProp !== undefined
+      ? setSelectedMetersProp
+      : setLocalSelectedMeters;
+
+  // Select the first meter as default when tab changes to 1
+  useEffect(() => {
+    if (tabValue === 1 && meterOptions && meterOptions.length > 0) {
+      setSelectedMeters([meterOptions[0].id]);
+    }
+  }, [tabValue, meterOptions, setSelectedMeters]);
+
+  // Select the first quantity as default when tab changes to 0
+  useEffect(() => {
+    if (tabValue === 0 && quantityOptions && quantityOptions.length > 0) {
+      setSelectedQuantities([quantityOptions[0].value]);
+    }
+  }, [tabValue, quantityOptions, setSelectedQuantities]);
+
+  // Clear the other selection when tab changes
+  useEffect(() => {
+    if (tabValue === 0) {
+      setSelectedMeters([]); // Clear meters when switching to quantities tab
+    } else if (tabValue === 1) {
+      setSelectedQuantities([]); // Clear quantities when switching to meters tab
+    }
+  }, [tabValue, setSelectedMeters, setSelectedQuantities]);
 
   return (
     <>
@@ -259,17 +309,40 @@ function SideSelections({
               </div>
             ) : (
               <div className="flex flex-col gap-1 mt-1">
-                {meterOptions.map((option, idx) => (
+                {meterOptions.map((option) => (
                   <div
-                    key={idx}
-                    onClick={() => handleQuantityToggle(option.value)}
-                    className={`flex items-center cursor-pointer px-2 py-1 rounded border transition-all duration-200 w-40 h-9 select-none shadow-sm ${
-                      selectedQuantities.includes(option.value)
-                        ? "border-purple-400 bg-purple-50 shadow-purple-100"
+                    key={option.id}
+                    onClick={() => handleMeterToggle(option.id)}
+                    className={`flex items-center cursor-pointer px-3 py-2 rounded-lg border transition-all duration-200 w-56 h-12 select-none shadow-sm mb-1 hover:shadow-md hover:border-purple-300 ${
+                      (selectedMeters || []).includes(option.id)
+                        ? "border-purple-500 bg-purple-50 shadow-purple-100"
                         : "border-gray-200 bg-white"
                     }`}
+                    style={{ gap: 12 }}
                   >
-                    {option.name}
+                    <Checkbox
+                      checked={(selectedMeters || []).includes(option.id)}
+                      sx={{
+                        color: (selectedMeters || []).includes(option.id)
+                          ? "#a259e6"
+                          : "#bdbdbd",
+                        "&.Mui-checked": {
+                          color: "#a259e6",
+                        },
+                        mr: 1.5,
+                      }}
+                    />
+                    <span
+                      className="font-semibold text-base flex-1"
+                      style={{
+                        color: (selectedMeters || []).includes(option.id)
+                          ? "#6c3aad"
+                          : "#333",
+                        letterSpacing: 0.2,
+                      }}
+                    >
+                      {option.name}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -418,27 +491,43 @@ function SideSelections({
                 ))}
               </Select>
             </FormControl>
-            {/* 
-            <FormControl sx={{ m: 1, width: 300 }}>
-              <InputLabel id="demo-multiple-checkbox-label">Tag</InputLabel>
+            <FormControl fullWidth sx={{ m: 1, width: 300 }}>
+              <InputLabel id="meter-multiselect-label">Meters</InputLabel>
               <Select
-                labelId="demo-multiple-checkbox-label"
-                id="demo-multiple-checkbox"
+                labelId="meter-multiselect-label"
+                id="meter-multiselect"
                 multiple
-                value={facilityID}
-                onChange={handleChange}
-                input={<OutlinedInput label="Tag" />}
-                renderValue={(selected) => selected.join(", ")}
-                // MenuProps={MenuProps}
+                value={selectedMeters || []}
+                onChange={(event) => {
+                  const {
+                    target: { value },
+                  } = event;
+                  setSelectedMeters(
+                    typeof value === "string" ? value.split(",") : value
+                  );
+                }}
+                input={<OutlinedInput label="Meters" />}
+                renderValue={(selected) =>
+                  meterOptions
+                    .filter((option) =>
+                      (Array.isArray(selected) ? selected : []).includes(
+                        option.id
+                      )
+                    )
+                    .map((option) => option.name)
+                    .join(", ")
+                }
               >
-                {names.map((name) => (
-                  <MenuItem key={name} value={name}>
-                    <Checkbox checked={facilityID.includes(name)} />
-                    <ListItemText primary={name} />
+                {meterOptions.map((option) => (
+                  <MenuItem key={option.id} value={option.id}>
+                    <Checkbox
+                      checked={(selectedMeters || []).includes(option.id)}
+                    />
+                    <ListItemText primary={option.name} />
                   </MenuItem>
                 ))}
               </Select>
-            </FormControl> */}
+            </FormControl>
           </AccordionDetails>
         </Accordion>
       </Box>

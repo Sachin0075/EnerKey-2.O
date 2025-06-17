@@ -42,22 +42,20 @@ function ReportChart({
   tabValue,
   facilityID,
   selectedQuantities,
+  selectedMeters, // <-- add this prop
   inspectionDateValue,
   ComparisonDateValue,
   selectedPeriod,
   selectedFrequency,
   consumptionTargets,
   setConsumptionTargets,
+  meterOptions = [], // <-- add default for meterOptions
 }) {
   const [allChartData, setAllChartData] = useState([]);
   const [allYMax, setAllYMax] = useState([]);
   const [targetA, setTargetA] = useState(0);
   const [targetB, setTargetB] = useState(0);
 
-  function getMonthYearLabel(dateStr) {
-    const date = new Date(dateStr);
-    return date.toLocaleString("default", { month: "short", year: "2-digit" });
-  }
   function getYear(dateStr) {
     return new Date(dateStr).getFullYear();
   }
@@ -88,6 +86,31 @@ function ReportChart({
       }
       return null;
     }
+    async function fetchDataByMeter(meterId, startDate) {
+      const url = "https://localhost:7161/api/MeterReadings/get-meterby-query";
+      const periodlength = checkFrequency(selectedPeriod);
+      const payload = {
+        resolution: selectedFrequency,
+        periodLength: periodlength,
+        facilityId: facilityID,
+        meterId: meterId,
+        start: startDate,
+      };
+      const token = localStorage.getItem("token");
+      const response = await axios.post(url, payload, {
+        headers: { Authorization: token },
+      });
+      if (
+        response.status === 200 &&
+        response.data &&
+        Array.isArray(response.data.consumption)
+      ) {
+        setTargetA(response.data.targetA);
+        setTargetB(response.data.targetB);
+        return response.data;
+      }
+      return null;
+    }
 
     async function updateAllCharts() {
       console.log("Consumptons are", consumptionTargets);
@@ -95,99 +118,190 @@ function ReportChart({
       if (
         tabValue !== undefined &&
         facilityID &&
-        selectedQuantities &&
-        selectedQuantities.length > 0 &&
+        ((selectedQuantities && selectedQuantities.length > 0) ||
+          (selectedMeters && selectedMeters.length > 0)) &&
         inspectionDateValue &&
         selectedPeriod &&
         selectedFrequency
       ) {
-        const qArr = checkQuantity(selectedQuantities);
-        const chartDataArr = [];
-        const yMaxArr = [];
-        for (let i = 0; i < qArr.length; i++) {
-          const mainData = await fetchData(qArr[i], inspectionDateValue);
-          let comparisonData = null;
-          if (ComparisonDateValue) {
-            comparisonData = await fetchData(qArr[i], ComparisonDateValue);
-          }
+        let chartDataArr = [];
+        let yMaxArr = [];
+        if (selectedQuantities && selectedQuantities.length > 0) {
+          const qArr = checkQuantity(selectedQuantities);
+          for (let i = 0; i < qArr.length; i++) {
+            const mainData = await fetchData(qArr[i], inspectionDateValue);
+            let comparisonData = null;
+            if (ComparisonDateValue) {
+              comparisonData = await fetchData(qArr[i], ComparisonDateValue);
+            }
 
-          let allLabels = [];
-          if (mainData)
-            allLabels = mainData.consumption.map((i) =>
-              getLabelForXAxis(i.timestamp)
-            );
-          if (comparisonData) {
-            const compLabels = comparisonData.consumption.map((i) =>
-              getLabelForXAxis(i.timestamp)
-            );
-            allLabels = Array.from(new Set([...allLabels, ...compLabels]));
-          }
-          allLabels = allLabels.sort((a, b) => {
-            const [am, ay] = a.split("/");
-            const [bm, by] = b.split("/");
-            return (
-              new Date(
-                `20${ay}`,
-                new Date(Date.parse(am + " 1, 2000")).getMonth()
-              ) -
-              new Date(
-                `20${by}`,
-                new Date(Date.parse(bm + " 1, 2000")).getMonth()
-              )
-            );
-          });
-          const mainMap = mainData
-            ? Object.fromEntries(
-                mainData.consumption.map((i) => [
-                  getLabelForXAxis(i.timestamp),
-                  i.consumedValue,
-                ])
-              )
-            : {};
-          const compMap = comparisonData
-            ? Object.fromEntries(
-                comparisonData.consumption.map((i) => [
-                  getLabelForXAxis(i.timestamp),
-                  i.consumedValue,
-                ])
-              )
-            : {};
-          const mainArr = allLabels.map((l) => mainMap[l] ?? 0);
-          const compArr = allLabels.map((l) => compMap[l] ?? 0);
-          const maxVal = Math.max(...mainArr, ...compArr);
-          yMaxArr.push(Math.ceil(maxVal * 1.1));
-          const colorSet = quantityColors[i % quantityColors.length];
-          const datasets = [
-            {
-              label: `${selectedQuantities[i]} - ${
-                mainData ? getYear(mainData.consumption[0].timestamp) : ""
-              }`,
-              data: mainArr,
-              backgroundColor: colorSet.main,
-              borderColor: colorSet.compare,
-              borderWidth: 1,
-              barPercentage: 0.7,
-              categoryPercentage: 0.7,
-            },
-          ];
-          if (comparisonData) {
-            datasets.push({
-              label: `${selectedQuantities[i]} - ${getYear(
-                comparisonData.consumption[0].timestamp
-              )}`,
-              data: compArr,
-              backgroundColor: colorSet.compare,
-              borderColor: colorSet.compare,
-              borderWidth: 1,
-              barPercentage: 0.7,
-              categoryPercentage: 0.7,
+            let allLabels = [];
+            if (mainData)
+              allLabels = mainData.consumption.map((i) =>
+                getLabelForXAxis(i.timestamp)
+              );
+            if (comparisonData) {
+              const compLabels = comparisonData.consumption.map((i) =>
+                getLabelForXAxis(i.timestamp)
+              );
+              allLabels = Array.from(new Set([...allLabels, ...compLabels]));
+            }
+            allLabels = allLabels.sort((a, b) => {
+              const [am, ay] = a.split("/");
+              const [bm, by] = b.split("/");
+              return (
+                new Date(
+                  `20${ay}`,
+                  new Date(Date.parse(am + " 1, 2000")).getMonth()
+                ) -
+                new Date(
+                  `20${by}`,
+                  new Date(Date.parse(bm + " 1, 2000")).getMonth()
+                )
+              );
+            });
+            const mainMap = mainData
+              ? Object.fromEntries(
+                  mainData.consumption.map((i) => [
+                    getLabelForXAxis(i.timestamp),
+                    i.consumedValue,
+                  ])
+                )
+              : {};
+            const compMap = comparisonData
+              ? Object.fromEntries(
+                  comparisonData.consumption.map((i) => [
+                    getLabelForXAxis(i.timestamp),
+                    i.consumedValue,
+                  ])
+                )
+              : {};
+            const mainArr = allLabels.map((l) => mainMap[l] ?? 0);
+            const compArr = allLabels.map((l) => compMap[l] ?? 0);
+            const maxVal = Math.max(...mainArr, ...compArr);
+            yMaxArr.push(Math.ceil(maxVal * 1.1));
+            const colorSet = quantityColors[i % quantityColors.length];
+            const datasets = [
+              {
+                label: `${selectedQuantities[i]} - ${
+                  mainData ? getYear(mainData.consumption[0].timestamp) : ""
+                }`,
+                data: mainArr,
+                backgroundColor: colorSet.main,
+                borderColor: colorSet.compare,
+                borderWidth: 1,
+                barPercentage: 0.7,
+                categoryPercentage: 0.7,
+              },
+            ];
+            if (comparisonData) {
+              datasets.push({
+                label: `${selectedQuantities[i]} - ${getYear(
+                  comparisonData.consumption[0].timestamp
+                )}`,
+                data: compArr,
+                backgroundColor: colorSet.compare,
+                borderColor: colorSet.compare,
+                borderWidth: 1,
+                barPercentage: 0.7,
+                categoryPercentage: 0.7,
+              });
+            }
+            chartDataArr.push({
+              labels: allLabels,
+              datasets,
+              quantity: selectedQuantities[i],
             });
           }
-          chartDataArr.push({
-            labels: allLabels,
-            datasets,
-            quantity: selectedQuantities[i],
-          });
+        }
+        if (selectedMeters && selectedMeters.length > 0) {
+          for (let i = 0; i < selectedMeters.length; i++) {
+            const mainData = await fetchDataByMeter(
+              selectedMeters[i],
+              inspectionDateValue
+            );
+            let comparisonData = null;
+            if (ComparisonDateValue) {
+              comparisonData = await fetchDataByMeter(
+                selectedMeters[i],
+                ComparisonDateValue
+              );
+            }
+            // Find meter name from meterOptions
+            let meterName = selectedMeters[i];
+            if (Array.isArray(meterOptions)) {
+              const found = meterOptions.find(
+                (m) => String(m.id) === String(selectedMeters[i])
+              );
+              if (found && found.name) meterName = found.name;
+            }
+            let allLabels = [];
+            if (mainData)
+              allLabels = mainData.consumption.map((i) =>
+                getLabelForXAxis(i.timestamp)
+              );
+            if (comparisonData) {
+              const compLabels = comparisonData.consumption.map((i) =>
+                getLabelForXAxis(i.timestamp)
+              );
+              allLabels = Array.from(new Set([...allLabels, ...compLabels]));
+            }
+            allLabels = allLabels.sort();
+            const mainMap = mainData
+              ? Object.fromEntries(
+                  mainData.consumption.map((i) => [
+                    getLabelForXAxis(i.timestamp),
+                    i.consumedValue,
+                  ])
+                )
+              : {};
+            const compMap = comparisonData
+              ? Object.fromEntries(
+                  comparisonData.consumption.map((i) => [
+                    getLabelForXAxis(i.timestamp),
+                    i.consumedValue,
+                  ])
+                )
+              : {};
+            const mainArr = allLabels.map((l) => mainMap[l] ?? 0);
+            const compArr = allLabels.map((l) => compMap[l] ?? 0);
+            const maxVal = Math.max(...mainArr, ...compArr);
+            yMaxArr.push(Math.ceil(maxVal * 1.1));
+            const colorSet = quantityColors[i % quantityColors.length];
+            const datasets = [
+              {
+                label: `Meter - ${meterName}${
+                  mainData
+                    ? " - " + getYear(mainData.consumption[0].timestamp)
+                    : ""
+                }`,
+                data: mainArr,
+                backgroundColor: colorSet.main,
+                borderColor: colorSet.compare,
+                borderWidth: 1,
+                barPercentage: 0.7,
+                categoryPercentage: 0.7,
+              },
+            ];
+            if (comparisonData) {
+              datasets.push({
+                label: `Meter - ${meterName} - ${getYear(
+                  comparisonData.consumption[0].timestamp
+                )}`,
+                data: compArr,
+                backgroundColor: colorSet.compare,
+                borderColor: colorSet.compare,
+                borderWidth: 1,
+                barPercentage: 0.7,
+                categoryPercentage: 0.7,
+              });
+            }
+            chartDataArr.push({
+              labels: allLabels,
+              datasets,
+              meter: meterName,
+            });
+          }
         }
         setAllChartData(chartDataArr);
         setAllYMax(yMaxArr);
@@ -196,6 +310,7 @@ function ReportChart({
     updateAllCharts();
   }, [
     selectedQuantities,
+    selectedMeters,
     selectedPeriod,
     selectedFrequency,
     inspectionDateValue,

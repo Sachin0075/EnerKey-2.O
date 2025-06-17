@@ -27,10 +27,11 @@ const Reports = () => {
   );
   const [ComparisonDateValue, setComparisonDateValue] = useState(null);
   const [meterOptions, setMeterOptions] = useState([]);
-  const [meterId, setMeterId] = useState("");
+  const [meterId, setMeterId] = useState([]);
   const [selectedPeriod, setSelectedPeriod] = useState("Year");
   const [selectedFrequency, setSelectedFrequency] = useState("Month");
   const [consumptionTargets, setConsumptionTargets] = useState([]);
+  const [selectedMeters, setSelectedMeters] = useState([]);
 
   useEffect(() => {
     if (!periodOptions[selectedPeriod].includes(selectedFrequency)) {
@@ -90,6 +91,8 @@ const Reports = () => {
         setSelectedFrequency={setSelectedFrequency}
         consumptionTargets={consumptionTargets}
         setConsumptionTargets={setConsumptionTargets}
+        selectedMeters={selectedMeters}
+        setSelectedMeters={setSelectedMeters}
       />
       <div className=" border-l-2 border-gray-300 h-full"></div>
       <ReportChart
@@ -106,6 +109,8 @@ const Reports = () => {
         selectedFrequency={selectedFrequency}
         consumptionTargets={consumptionTargets}
         setConsumptionTargets={setConsumptionTargets}
+        selectedMeters={selectedMeters}
+        meterOptions={meterOptions}
       />
     </div>
   );
