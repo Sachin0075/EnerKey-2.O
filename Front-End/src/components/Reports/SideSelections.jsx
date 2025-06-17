@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useState } from "react";
+import React, { useEffect } from "react";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import ListItemText from "@mui/material/ListItemText";
 import {
@@ -24,6 +24,9 @@ import OpacityIcon from "@mui/icons-material/Opacity";
 import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
 import axios from "axios";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
 
 function SideSelections({
   consumptionTargets,
@@ -55,7 +58,7 @@ function SideSelections({
 }) {
   // console.log("meter options:", meterOptions);
 
-  const names = ["Min - Consumption", "Max - Consumption"];
+  const names = ["Min-Consumption", "Max-Consumption"];
   const quantityOptions = [
     {
       label: "Electricity",
@@ -125,8 +128,23 @@ function SideSelections({
 
   return (
     <>
-      <Box className="flex flex-col gap-2 mb-4  ">
-        <Accordion className="w-[300px] ">
+      <Box
+        className="flex flex-col gap-2 mb-4 w-[450px] "
+        sx={{ overflowY: "auto", height: "80vh", overflowX: "hidden" }}
+      >
+        <Accordion
+          className="w-[300px]"
+          sx={{
+            boxShadow: "none",
+            borderBottom: "1px solid #e0e0e0",
+            "&:not(:last-child)": {
+              // borderBottom: "none",
+            },
+            "&:before": {
+              display: "none",
+            },
+          }}
+        >
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
             aria-controls="panel1-content"
@@ -176,7 +194,19 @@ function SideSelections({
             </FormControl>
           </AccordionDetails>
         </Accordion>
-        <Accordion className="w-[300px]">
+        <Accordion
+          sx={{
+            boxShadow: "none",
+            borderBottom: "1px solid #e0e0e0",
+            "&:not(:last-child)": {
+              // borderBottom: "none",
+            },
+            "&:before": {
+              display: "none",
+            },
+          }}
+          className="w-[300px]"
+        >
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Typography>Quanity/Meter</Typography>
           </AccordionSummary>
@@ -229,9 +259,9 @@ function SideSelections({
               </div>
             ) : (
               <div className="flex flex-col gap-1 mt-1">
-                {meterOptions.map((option) => (
+                {meterOptions.map((option, idx) => (
                   <div
-                    key={option.id}
+                    key={idx}
                     onClick={() => handleQuantityToggle(option.value)}
                     className={`flex items-center cursor-pointer px-2 py-1 rounded border transition-all duration-200 w-40 h-9 select-none shadow-sm ${
                       selectedQuantities.includes(option.value)
@@ -246,7 +276,19 @@ function SideSelections({
             )}
           </AccordionDetails>
         </Accordion>
-        <Accordion className="w-[300px] ">
+        <Accordion
+          sx={{
+            boxShadow: "none",
+            borderBottom: "1px solid #e0e0e0",
+            "&:not(:last-child)": {
+              // borderBottom: "none",
+            },
+            "&:before": {
+              display: "none",
+            },
+          }}
+          className="w-[300px] "
+        >
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Typography>Time Period</Typography>
           </AccordionSummary>
@@ -295,12 +337,13 @@ function SideSelections({
                   }
                   onChange={(val) =>
                     setInspectionDateValue(
-                      val ? val.startOf("day").toISOString() : null
+                      val ? dayjs(val).utc().startOf("day").toISOString() : null
                     )
                   }
                   sx={{ width: "100%" }}
                 />
               </LocalizationProvider>
+
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
                   label="Comparison Period"
@@ -310,7 +353,7 @@ function SideSelections({
                   }
                   onChange={(val) =>
                     setComparisonDateValue(
-                      val ? val.startOf("day").toISOString() : null
+                      val ? dayjs(val).utc().startOf("day").toISOString() : null
                     )
                   }
                   sx={{ width: "100%" }}
@@ -319,7 +362,19 @@ function SideSelections({
             </Box>
           </AccordionDetails>
         </Accordion>
-        <Accordion className="w-[300px] ">
+        <Accordion
+          sx={{
+            boxShadow: "none",
+            borderBottom: "1px solid #e0e0e0",
+            "&:not(:last-child)": {
+              borderBottom: "none",
+            },
+            "&:before": {
+              display: "none",
+            },
+          }}
+          className="w-[300px] "
+        >
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
             aria-controls="panel1-content"
@@ -349,8 +404,15 @@ function SideSelections({
                 renderValue={(selected) => selected.join(", ")}
               >
                 {names.map((name) => (
-                  <MenuItem key={name} value={name}>
-                    <Checkbox checked={consumptionTargets.includes(name)} />
+                  <MenuItem
+                    key={name == "Min-Consumption" ? "targetA" : "targetB"}
+                    value={name == "Min-Consumption" ? "targetA" : "targetB"}
+                  >
+                    <Checkbox
+                      checked={consumptionTargets.includes(
+                        name == "Min-Consumption" ? "targetA" : "targetB"
+                      )}
+                    />
                     <ListItemText primary={name} />
                   </MenuItem>
                 ))}

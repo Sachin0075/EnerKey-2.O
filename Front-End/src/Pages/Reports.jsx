@@ -4,6 +4,9 @@ import ReportChart from "../components/Reports/ReportChart.jsx";
 import { getAllFacilitiesGroupedByOrgID } from "../services/DataServices/FacilityService";
 import { getAllOrganizationsIDnName } from "../services/DataServices/getAllOrganizationsIDnName";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
 
 const periodOptions = {
   Year: ["Year", "Quarter", "Month", "Week"],
@@ -20,14 +23,14 @@ const Reports = () => {
   const [selectQuantity, setSelectQuantity] = useState(true);
   const [selectedQuantities, setSelectedQuantities] = useState(["Electricity"]);
   const [inspectionDateValue, setInspectionDateValue] = useState(
-    dayjs().subtract(1, "year").startOf("day").toISOString()
+    dayjs().utc().startOf("day").toISOString()
   );
   const [ComparisonDateValue, setComparisonDateValue] = useState(null);
   const [meterOptions, setMeterOptions] = useState([]);
   const [meterId, setMeterId] = useState("");
   const [selectedPeriod, setSelectedPeriod] = useState("Year");
   const [selectedFrequency, setSelectedFrequency] = useState("Month");
-  const [consumptionTargets, setConsumptionTargets] = React.useState([]);
+  const [consumptionTargets, setConsumptionTargets] = useState([]);
 
   useEffect(() => {
     if (!periodOptions[selectedPeriod].includes(selectedFrequency)) {
@@ -102,6 +105,7 @@ const Reports = () => {
         selectedPeriod={selectedPeriod}
         selectedFrequency={selectedFrequency}
         consumptionTargets={consumptionTargets}
+        setConsumptionTargets={setConsumptionTargets}
       />
     </div>
   );

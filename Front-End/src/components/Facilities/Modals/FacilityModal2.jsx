@@ -206,9 +206,9 @@ function FacilityModal2({
                 fullWidth
                 displayEmpty
               >
-                <MenuItem value="1">Water</MenuItem>
-                <MenuItem value="2">Gas</MenuItem>
-                <MenuItem value="3">Electricity</MenuItem>
+                <MenuItem value="1">Electricity</MenuItem>
+                <MenuItem value="2">Water</MenuItem>
+                <MenuItem value="3">Gas</MenuItem>
               </Select>
               {error.consumedQuantityId && (
                 <span style={{ color: "red", fontSize: 12, marginLeft: 14 }}>

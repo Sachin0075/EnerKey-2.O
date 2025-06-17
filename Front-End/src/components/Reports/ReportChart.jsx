@@ -47,11 +47,12 @@ function ReportChart({
   selectedPeriod,
   selectedFrequency,
   consumptionTargets,
-  targetA, // min consumption
-  targetB, // max consumption
+  setConsumptionTargets,
 }) {
   const [allChartData, setAllChartData] = useState([]);
   const [allYMax, setAllYMax] = useState([]);
+  const [targetA, setTargetA] = useState(0);
+  const [targetB, setTargetB] = useState(0);
 
   function getMonthYearLabel(dateStr) {
     const date = new Date(dateStr);
@@ -81,12 +82,16 @@ function ReportChart({
         response.data &&
         Array.isArray(response.data.consumption)
       ) {
+        setTargetA(response.data.targetA);
+        setTargetB(response.data.targetB);
         return response.data;
       }
       return null;
     }
 
     async function updateAllCharts() {
+      console.log("Consumptons are", consumptionTargets);
+
       if (
         tabValue !== undefined &&
         facilityID &&
@@ -105,14 +110,15 @@ function ReportChart({
           if (ComparisonDateValue) {
             comparisonData = await fetchData(qArr[i], ComparisonDateValue);
           }
+
           let allLabels = [];
           if (mainData)
             allLabels = mainData.consumption.map((i) =>
-              getMonthYearLabel(i.timestamp)
+              getLabelForXAxis(i.timestamp)
             );
           if (comparisonData) {
             const compLabels = comparisonData.consumption.map((i) =>
-              getMonthYearLabel(i.timestamp)
+              getLabelForXAxis(i.timestamp)
             );
             allLabels = Array.from(new Set([...allLabels, ...compLabels]));
           }
@@ -133,7 +139,7 @@ function ReportChart({
           const mainMap = mainData
             ? Object.fromEntries(
                 mainData.consumption.map((i) => [
-                  getMonthYearLabel(i.timestamp),
+                  getLabelForXAxis(i.timestamp),
                   i.consumedValue,
                 ])
               )
@@ -141,7 +147,7 @@ function ReportChart({
           const compMap = comparisonData
             ? Object.fromEntries(
                 comparisonData.consumption.map((i) => [
-                  getMonthYearLabel(i.timestamp),
+                  getLabelForXAxis(i.timestamp),
                   i.consumedValue,
                 ])
               )
@@ -196,6 +202,7 @@ function ReportChart({
     facilityID,
     tabValue,
     ComparisonDateValue,
+    consumptionTargets,
   ]);
 
   function checkFrequency(freq) {
@@ -220,16 +227,61 @@ function ReportChart({
   }
 
   // X and Y axis config cells
+  function getXAxisLabel(period, frequency) {
+    if (period === "Year" && frequency === "Month") return "Month";
+    if (period === "Year" && frequency === "Quarter") return "Quarter";
+    if (period === "Year" && frequency === "Week") return "Week";
+    if (period === "Year" && frequency === "Year") return "Year";
+    if (period === "Quarter" && frequency === "Month") return "Month";
+    if (period === "Quarter" && frequency === "Week") return "Week";
+    if (period === "Quarter" && frequency === "Quarter") return "Quarter";
+    if (period === "Month" && frequency === "Week") return "Week";
+    if (period === "Month" && frequency === "Day") return "Day";
+    if (period === "Month" && frequency === "Month") return "Month";
+    if (period === "Week" && frequency === "Day") return "Day";
+    if (period === "Week" && frequency === "Week") return "Week";
+    return frequency;
+  }
   const xAxisCell = {
     title: {
       display: true,
-      text: "Period Length",
+      text: getXAxisLabel(selectedPeriod, selectedFrequency),
       color: "#888",
       font: { size: 12 },
     },
     ticks: { color: "#888", font: { size: 14 } },
     grid: { display: false },
   };
+
+  function getLabelForXAxis(dateStr) {
+    const date = new Date(dateStr);
+    if (selectedFrequency === "Day") {
+      // Show just the day of the month, zero-padded
+      return date.toLocaleString("default", { day: "2-digit" });
+    } else if (selectedFrequency === "Month") {
+      return date.toLocaleString("default", {
+        month: "short",
+        year: "2-digit",
+      });
+    } else if (selectedFrequency === "Week") {
+      // Show week number and year short
+      const week = getWeekNumber(date);
+      const yearShort = date.getFullYear().toString().slice(-2);
+      return `W${week}/${yearShort}`;
+    } else if (selectedFrequency === "Quarter") {
+      const quarter = Math.floor(date.getMonth() / 3) + 1;
+      const yearShort = date.getFullYear().toString().slice(-2);
+      return `Q${quarter}/${yearShort}`;
+    } else if (selectedFrequency === "Year") {
+      return date.getFullYear().toString();
+    }
+    return dateStr;
+  }
+  function getWeekNumber(date) {
+    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+    const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+  }
 
   return (
     <div
@@ -266,7 +318,9 @@ function ReportChart({
                     annotation: {
                       annotations: {
                         minLine:
-                          targetA && targetA !== null
+                          consumptionTargets &&
+                          consumptionTargets.includes("targetA") &&
+                          targetA
                             ? {
                                 type: "line",
                                 yMin: targetA,
@@ -274,7 +328,7 @@ function ReportChart({
                                 borderColor: "green",
                                 borderWidth: 2,
                                 label: {
-                                  content: "Min Consumption",
+                                  content: `Min Consumption: ${targetA}`,
                                   enabled: true,
                                   position: "end",
                                   color: "green",
@@ -282,7 +336,9 @@ function ReportChart({
                               }
                             : undefined,
                         maxLine:
-                          targetB && targetB !== null
+                          consumptionTargets &&
+                          consumptionTargets.includes("targetB") &&
+                          targetB
                             ? {
                                 type: "line",
                                 yMin: targetB,
@@ -290,7 +346,7 @@ function ReportChart({
                                 borderColor: "red",
                                 borderWidth: 2,
                                 label: {
-                                  content: "Max Consumption",
+                                  content: `Max Consumption: ${targetB}`,
                                   enabled: true,
                                   position: "end",
                                   color: "red",
@@ -312,7 +368,12 @@ function ReportChart({
                       ticks: { color: "#888", font: { size: 14 } },
                       grid: { display: false },
                       beginAtZero: true,
-                      max: allYMax[idx],
+                      max: Math.max(
+                        allYMax[idx],
+                        consumptionTargets.includes("targetB") && targetB
+                          ? targetB * 1.1
+                          : 0
+                      ),
                     },
                   },
                 }}

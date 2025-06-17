@@ -380,9 +380,9 @@ export default function ViewMeter({
                             Quantity Type:
                           </Typography>
                           <Typography sx={{ flex: 1, ml: 1 }}>
-                            {editMeter.consumedQuantityId === "1"
-                              ? "Electricty"
-                              : editMeter.consumedQuantityId === "2"
+                            {meter.consumedQuantityId === 1
+                              ? "Electricity"
+                              : meter.consumedQuantityId === 2
                               ? "Water"
                               : "Gas"}
                           </Typography>
