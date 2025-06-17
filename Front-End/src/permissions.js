@@ -1,10 +1,10 @@
 // src/permissions.js
 export const permissions = {
-  dashboard: ["customeradmin", "user", "superadmin"],
-  users: ["customeradmin","superadmin"  , "user"],
   organization: ["superadmin"],
-  facilities: ["customeradmin", "superadmin", "user"],
-  reports: ["customeradmin", "superadmin", "user"],
+  users: ["customeradmin","superadmin"  ],
+  dashboard: ["customeradmin", "registereduser", "superadmin"],
+  facilities: ["customeradmin", "superadmin", "registereduser"],
+  reports: ["customeradmin", "superadmin", "registereduser"],
 };
 
 export function canAccess(role, resource) {

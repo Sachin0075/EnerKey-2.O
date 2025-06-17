@@ -1,16 +1,23 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import AddButtonUser from "../components/User/AddButtonUser";
 import UsersTable from "../components/User/UsersTable";
 import axios from "axios";
-import { useState } from "react";
+import NotAuthorized from "../components/NotAuthorized";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
 const Users = ({ role }) => {
   const [rows, setRows] = useState([]);
   const [orgMap, setOrgMap] = useState({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getProfile();
-  }, []);
+    if (role === "superadmin" || role === "customeradmin") {
+      getProfile();
+    }
+    // eslint-disable-next-line
+  }, [role]);
+
   async function fetchOrganizationNames() {
     try {
       const geturl =
@@ -32,13 +39,6 @@ const Users = ({ role }) => {
           return acc;
         }, {});
         setOrgMap(orgKeyValue);
-
-        // Function to get organization name by orgId and set orgName
-        // function getOrgNameById(id) {
-        //   const name = orgKeyValue[id] || "";
-        //   setOrgName(name);
-        //   return name;
-        // }
       }
     } catch (error) {
       console.error("Error fetching organizations:", error);
@@ -48,28 +48,36 @@ const Users = ({ role }) => {
   async function getAdminUser(orgId) {
     if (!orgId) {
       console.error("Organization ID is not provided.");
+      setLoading(false);
       return;
     }
     const url = `https://localhost:7266/api/User/getUsersByOranizationId/${orgId}`;
-    const response = await axios.get(url, {
-      headers: {
-        Authorization: `${localStorage.getItem("token")}`,
-      },
-    });
-    if (response.status === 200) {
-      const data = Array.isArray(response.data)
-        ? response.data
-        : Array.isArray(response.data.data)
-        ? response.data.data
-        : [];
-
-      setRows(data);
-    } else {
-      console.error("Failed to fetch users:", response.statusText);
+    try {
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `${localStorage.getItem("token")}`,
+        },
+      });
+      if (response.status === 200) {
+        const data = Array.isArray(response.data)
+          ? response.data
+          : Array.isArray(response.data.data)
+          ? response.data.data
+          : [];
+        setRows(data);
+      } else {
+        console.error("Failed to fetch users:", response.statusText);
+        setRows([]);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      setRows([]);
     }
+    setLoading(false);
+    fetchOrganizationNames();
   }
+
   async function getProfile() {
-    //this is done with jwt role
     const url = "https://localhost:7266/api/User/profile";
     const token = localStorage.getItem("token");
     try {
@@ -86,11 +94,14 @@ const Users = ({ role }) => {
           "Failed to fetch profile or data is not in the expected format:",
           response
         );
+        setLoading(false);
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
+      setLoading(false);
     }
   }
+
   async function getAllUser() {
     const url = "https://localhost:7266/api/User/getAllUsers";
     const token = localStorage.getItem("token");
@@ -109,24 +120,30 @@ const Users = ({ role }) => {
       }
     } catch (error) {
       console.error("Error fetching users:", error);
+      setRows([]);
     }
     fetchOrganizationNames();
+    setLoading(false);
   }
+
+  if (role !== "superadmin" && role !== "customeradmin") {
+    return <NotAuthorized />;
+  }
+
+  if (loading) {
+    return (
+      <div style={{ padding: 24 }}>
+        <Skeleton height={32} width={200} style={{ marginBottom: 16 }} />
+        <Skeleton height={40} style={{ marginBottom: 8 }} count={4} />
+      </div>
+    );
+  }
+
   return (
     <div>
       <AddButtonUser />
       <UsersTable
-        // role={role}
         rows={rows}
-        // getUsers={getProfile}
-        // getAdminUser={getAdminUser}
-        // getAllUser={
-        //   role === "superadmin"
-        //     ? getAllUser
-        //     : role === "customeradmin"
-        //     ? getAdminUser
-        //     : getProfile
-        // }
         getAllUser={role === "superadmin" ? getAllUser : getAdminUser}
         orgMap={orgMap}
       />
