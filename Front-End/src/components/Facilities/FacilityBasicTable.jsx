@@ -30,7 +30,7 @@ export default function FacilityBasicTable({
   const [isviewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  const [facilityId, setFacilityId] = useState(null);
+  const [facilityId, setFacilityId] = useState([]);
 
   useEffect(() => {
     getAllFacilities();

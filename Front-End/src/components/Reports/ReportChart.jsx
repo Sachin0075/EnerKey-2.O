@@ -9,10 +9,9 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
-import { toast } from "react-toastify";
-import { useState } from "react";
+import annotationPlugin from "chartjs-plugin-annotation";
 
 ChartJS.register(
   CategoryScale,
@@ -20,143 +19,185 @@ ChartJS.register(
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  annotationPlugin
 );
 
-const data = {
-  labels: [
-    "Jan/24",
-    "Feb/24",
-    "Mar/24",
-    "Apr/24",
-    "May/24",
-    "Jun/24",
-    "Jul/24",
-    "Aug/24",
-    "Sept/24",
-    "Oct/24",
-    "Nov/24",
-    "Dec/24",
-  ],
-  datasets: [
-    {
-      label: "Electricity - 2024",
-      data: [370, 40, 55, 143, 198, 165, 166, 100, 106, 102, 132, 137],
-      backgroundColor: "rgba(162, 89, 230, 0.4)",
-      borderColor: "#B1A9F9",
-      borderWidth: 1,
-      borderRadius: 4,
-      barPercentage: 0.7,
-      categoryPercentage: 0.7,
-    },
-  ],
-};
-
-const options = {
-  responsive: true,
-  plugins: {
-    legend: {
-      display: true,
-      position: "top",
-      labels: {
-        color: "#888",
-        font: { size: 16, weight: "bold" },
-        boxWidth: 30,
-      },
-    },
-    title: {
-      display: false,
-    },
-    tooltip: {
-      enabled: true,
-    },
+const quantityColors = [
+  {
+    main: "#7C3AED", // Deep purple
+    compare: "#5B21B6",
   },
-  scales: {
-    x: {
-      title: {
-        display: true,
-        text: "Period Length",
-        color: "#888",
-        font: { size: 12 },
-      },
-      ticks: { color: "#888", font: { size: 14 } },
-      grid: { display: false },
-    },
-    y: {
-      title: {
-        display: true,
-        text: "Consumption (kWh)",
-        color: "#888",
-        font: { size: 12 },
-      },
-      ticks: { color: "#888", font: { size: 14 } },
-      grid: { display: false },
-      min: 0,
-      max: 450,
-    },
+  {
+    main: "#0EA5E9", // Sky blue
+    compare: "#0369A1",
   },
-};
+  {
+    main: "#F43F5E", // Rose red
+    compare: "#BE123C",
+  },
+];
 
 function ReportChart({
   tabValue,
   facilityID,
   selectedQuantities,
-  DateValue,
+  inspectionDateValue,
+  ComparisonDateValue,
   selectedPeriod,
   selectedFrequency,
+  consumptionTargets,
+  targetA, // min consumption
+  targetB, // max consumption
 }) {
-  const [chartData, setChartData] = useState([]);
-  const [quantityArray, setQuantityArray] = useState([]);
+  const [allChartData, setAllChartData] = useState([]);
+  const [allYMax, setAllYMax] = useState([]);
+
+  function getMonthYearLabel(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleString("default", { month: "short", year: "2-digit" });
+  }
+  function getYear(dateStr) {
+    return new Date(dateStr).getFullYear();
+  }
 
   useEffect(() => {
-    if (tabValue === 0) {
-      const qArr = checkQuantity(selectedQuantities);
-      qArr.forEach((qid) => {
-        updateChartByFacility(qid);
-        console.log("Quantity ID:", qid);
-      });
-    } else {
-      updateChartByMeter();
-    }
-  }, [
-    selectedQuantities,
-    selectedPeriod,
-    selectedFrequency,
-    DateValue,
-    facilityID,
-    tabValue,
-  ]);
-
-  async function updateChartByFacility(qid) {
-    try {
+    async function fetchData(qid, startDate) {
       const url = "https://localhost:7161/api/MeterReadings/get-meterby-query";
-      const periodlength = checkFrequency(selectedFrequency);
-      // console.log("Selected Frequency:", selectedFrequency);
-
-      setQuantityArray(checkQuantity(selectedQuantities));
-      // console.log("Checked Quantity is ", checkQuantity(selectedQuantities));[1,3]
-
+      const periodlength = checkFrequency(selectedPeriod);
       const payload = {
-        resolution: selectedPeriod,
+        resolution: selectedFrequency,
         periodLength: periodlength,
         facilityId: facilityID,
         quantityId: qid,
-        start: DateValue,
+        start: startDate,
       };
       const token = localStorage.getItem("token");
       const response = await axios.post(url, payload, {
         headers: { Authorization: token },
       });
-      if (response.status === 200) {
-        toast.success("Chart updated successfully!");
-        setChartData(response.data);
-        console.log("Chart data:", response.data);
+      if (
+        response.status === 200 &&
+        response.data &&
+        Array.isArray(response.data.consumption)
+      ) {
+        return response.data;
       }
-    } catch (error) {
-      console.error("Error updating chart by facility:", error);
-      toast.error("Failed to update chart. Please try again.");
+      return null;
     }
-  }
+
+    async function updateAllCharts() {
+      if (
+        tabValue !== undefined &&
+        facilityID &&
+        selectedQuantities &&
+        selectedQuantities.length > 0 &&
+        inspectionDateValue &&
+        selectedPeriod &&
+        selectedFrequency
+      ) {
+        const qArr = checkQuantity(selectedQuantities);
+        const chartDataArr = [];
+        const yMaxArr = [];
+        for (let i = 0; i < qArr.length; i++) {
+          const mainData = await fetchData(qArr[i], inspectionDateValue);
+          let comparisonData = null;
+          if (ComparisonDateValue) {
+            comparisonData = await fetchData(qArr[i], ComparisonDateValue);
+          }
+          let allLabels = [];
+          if (mainData)
+            allLabels = mainData.consumption.map((i) =>
+              getMonthYearLabel(i.timestamp)
+            );
+          if (comparisonData) {
+            const compLabels = comparisonData.consumption.map((i) =>
+              getMonthYearLabel(i.timestamp)
+            );
+            allLabels = Array.from(new Set([...allLabels, ...compLabels]));
+          }
+          allLabels = allLabels.sort((a, b) => {
+            const [am, ay] = a.split("/");
+            const [bm, by] = b.split("/");
+            return (
+              new Date(
+                `20${ay}`,
+                new Date(Date.parse(am + " 1, 2000")).getMonth()
+              ) -
+              new Date(
+                `20${by}`,
+                new Date(Date.parse(bm + " 1, 2000")).getMonth()
+              )
+            );
+          });
+          const mainMap = mainData
+            ? Object.fromEntries(
+                mainData.consumption.map((i) => [
+                  getMonthYearLabel(i.timestamp),
+                  i.consumedValue,
+                ])
+              )
+            : {};
+          const compMap = comparisonData
+            ? Object.fromEntries(
+                comparisonData.consumption.map((i) => [
+                  getMonthYearLabel(i.timestamp),
+                  i.consumedValue,
+                ])
+              )
+            : {};
+          const mainArr = allLabels.map((l) => mainMap[l] ?? 0);
+          const compArr = allLabels.map((l) => compMap[l] ?? 0);
+          const maxVal = Math.max(...mainArr, ...compArr);
+          yMaxArr.push(Math.ceil(maxVal * 1.1));
+          const colorSet = quantityColors[i % quantityColors.length];
+          const datasets = [
+            {
+              label: `${selectedQuantities[i]} - ${
+                mainData ? getYear(mainData.consumption[0].timestamp) : ""
+              }`,
+              data: mainArr,
+              backgroundColor: colorSet.main,
+              borderColor: colorSet.compare,
+              borderWidth: 1,
+              barPercentage: 0.7,
+              categoryPercentage: 0.7,
+            },
+          ];
+          if (comparisonData) {
+            datasets.push({
+              label: `${selectedQuantities[i]} - ${getYear(
+                comparisonData.consumption[0].timestamp
+              )}`,
+              data: compArr,
+              backgroundColor: colorSet.compare,
+              borderColor: colorSet.compare,
+              borderWidth: 1,
+              barPercentage: 0.7,
+              categoryPercentage: 0.7,
+            });
+          }
+          chartDataArr.push({
+            labels: allLabels,
+            datasets,
+            quantity: selectedQuantities[i],
+          });
+        }
+        setAllChartData(chartDataArr);
+        setAllYMax(yMaxArr);
+      }
+    }
+    updateAllCharts();
+  }, [
+    selectedQuantities,
+    selectedPeriod,
+    selectedFrequency,
+    inspectionDateValue,
+    facilityID,
+    tabValue,
+    ComparisonDateValue,
+  ]);
+
   function checkFrequency(freq) {
     return freq === "Year"
       ? { year: 1 }
@@ -178,33 +219,17 @@ function ReportChart({
     return selectedQuantities.map((q) => quantityMap[q]).filter(Boolean);
   }
 
-  async function updateChartByMeter() {
-    try {
-      const url = "https://localhost:7161/api/MeterReadings/get-meterby-query";
-      const periodlength = checkFrequency(selectedFrequency);
-      const quantityId = checkQuantity(selectedQuantities);
-      const payload = {
-        resolution: { selectedPeriod },
-        periodLength: periodlength,
-        facilityId: { facilityID },
-        quantityId: quantityId,
-        start: DateValue,
-      };
-      const token = localStorage.getItem("token");
-      const response = await axios.post(url, payload, {
-        headers: { Authorization: token },
-      });
-
-      if (response.status === 200) {
-        toast.success("Chart updated successfully!");
-        setChartData(response.data);
-        console.log("Chart data:", response.data);
-      }
-    } catch (error) {
-      console.error("Error updating chart by meter:", error);
-      toast.error("Failed to update chart by meter. Please try again.");
-    }
-  }
+  // X and Y axis config cells
+  const xAxisCell = {
+    title: {
+      display: true,
+      text: "Period Length",
+      color: "#888",
+      font: { size: 12 },
+    },
+    ticks: { color: "#888", font: { size: 14 } },
+    grid: { display: false },
+  };
 
   return (
     <div
@@ -219,9 +244,86 @@ function ReportChart({
       }}
     >
       <div style={{ minWidth: 750, whiteSpace: "nowrap" }}>
-        <Bar data={data} options={options} />
-        <Bar data={data} options={options} />
-        <Bar data={data} options={options} />
+        {allChartData.length > 0 ? (
+          allChartData.map((cd, idx) => (
+            <div key={cd.quantity} style={{ marginBottom: 40 }}>
+              <Bar
+                data={{ labels: cd.labels, datasets: cd.datasets }}
+                options={{
+                  responsive: true,
+                  plugins: {
+                    legend: {
+                      display: true,
+                      position: "top",
+                      labels: {
+                        color: "#888",
+                        font: { size: 16, weight: "bold" },
+                        boxWidth: 30,
+                      },
+                    },
+                    title: { display: false },
+                    tooltip: { enabled: true },
+                    annotation: {
+                      annotations: {
+                        minLine:
+                          targetA && targetA !== null
+                            ? {
+                                type: "line",
+                                yMin: targetA,
+                                yMax: targetA,
+                                borderColor: "green",
+                                borderWidth: 2,
+                                label: {
+                                  content: "Min Consumption",
+                                  enabled: true,
+                                  position: "end",
+                                  color: "green",
+                                },
+                              }
+                            : undefined,
+                        maxLine:
+                          targetB && targetB !== null
+                            ? {
+                                type: "line",
+                                yMin: targetB,
+                                yMax: targetB,
+                                borderColor: "red",
+                                borderWidth: 2,
+                                label: {
+                                  content: "Max Consumption",
+                                  enabled: true,
+                                  position: "end",
+                                  color: "red",
+                                },
+                              }
+                            : undefined,
+                      },
+                    },
+                  },
+                  scales: {
+                    x: xAxisCell,
+                    y: {
+                      title: {
+                        display: true,
+                        text: "Consumption (kWh)",
+                        color: "#888",
+                        font: { size: 12 },
+                      },
+                      ticks: { color: "#888", font: { size: 14 } },
+                      grid: { display: false },
+                      beginAtZero: true,
+                      max: allYMax[idx],
+                    },
+                  },
+                }}
+              />
+            </div>
+          ))
+        ) : (
+          <div style={{ textAlign: "center", color: "#888" }}>
+            No data available
+          </div>
+        )}
       </div>
     </div>
   );

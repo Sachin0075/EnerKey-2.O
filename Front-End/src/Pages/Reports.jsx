@@ -19,17 +19,21 @@ const Reports = () => {
   const [tabValue, setTabValue] = useState(0);
   const [selectQuantity, setSelectQuantity] = useState(true);
   const [selectedQuantities, setSelectedQuantities] = useState(["Electricity"]);
-  const [DateValue, setDateValue] = useState(dayjs());
+  const [inspectionDateValue, setInspectionDateValue] = useState(
+    dayjs().subtract(1, "year").startOf("day").toISOString()
+  );
+  const [ComparisonDateValue, setComparisonDateValue] = useState(null);
   const [meterOptions, setMeterOptions] = useState([]);
   const [meterId, setMeterId] = useState("");
   const [selectedPeriod, setSelectedPeriod] = useState("Year");
-  const [selectedFrequency, setSelectedFrequency] = useState(
-    periodOptions["Year"][0]
-  );
+  const [selectedFrequency, setSelectedFrequency] = useState("Month");
+  const [consumptionTargets, setConsumptionTargets] = React.useState([]);
 
   useEffect(() => {
-    setSelectedFrequency(periodOptions[selectedPeriod][0]);
-  }, [selectedPeriod]);
+    if (!periodOptions[selectedPeriod].includes(selectedFrequency)) {
+      setSelectedFrequency(periodOptions[selectedPeriod][0]);
+    }
+  }, [selectedPeriod, selectedFrequency]);
 
   useEffect(() => {
     async function fetchFacilitiesAndOrgs() {
@@ -57,7 +61,7 @@ const Reports = () => {
     <div className="flex flex-col md:flex-row gap-4 p-4 mt-4 h-screen">
       <SideSelections
         facilityID={facilityID}
-        setFacility={setFacilityID}
+        setFacilityID={setFacilityID}
         orgIds={orgIds}
         facilitiesByOrg={facilitiesByOrg}
         orgNames={orgNames}
@@ -67,8 +71,10 @@ const Reports = () => {
         setSelectQuantity={setSelectQuantity}
         selectedQuantities={selectedQuantities}
         setSelectedQuantities={setSelectedQuantities}
-        DateValue={DateValue}
-        setDateValue={setDateValue}
+        inspectionDateValue={inspectionDateValue}
+        setInspectionDateValue={setInspectionDateValue}
+        ComparisonDateValue={ComparisonDateValue}
+        setComparisonDateValue={setComparisonDateValue}
         handleChange={handleFacilityChange}
         setMeterOptions={setMeterOptions}
         meterOptions={meterOptions}
@@ -79,6 +85,8 @@ const Reports = () => {
         setSelectedPeriod={setSelectedPeriod}
         selectedFrequency={selectedFrequency}
         setSelectedFrequency={setSelectedFrequency}
+        consumptionTargets={consumptionTargets}
+        setConsumptionTargets={setConsumptionTargets}
       />
       <div className=" border-l-2 border-gray-300 h-full"></div>
       <ReportChart
@@ -89,9 +97,11 @@ const Reports = () => {
         tabValue={tabValue}
         selectQuantity={selectQuantity}
         selectedQuantities={selectedQuantities}
-        DateValue={DateValue}
+        inspectionDateValue={inspectionDateValue}
+        ComparisonDateValue={ComparisonDateValue}
         selectedPeriod={selectedPeriod}
         selectedFrequency={selectedFrequency}
+        consumptionTargets={consumptionTargets}
       />
     </div>
   );

@@ -1,4 +1,6 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback, useState } from "react";
+import OutlinedInput from "@mui/material/OutlinedInput";
+import ListItemText from "@mui/material/ListItemText";
 import {
   Accordion,
   AccordionDetails,
@@ -24,6 +26,8 @@ import axios from "axios";
 import dayjs from "dayjs";
 
 function SideSelections({
+  consumptionTargets,
+  setConsumptionTargets,
   orgIds = [],
   facilitiesByOrg = {},
   orgNames = {},
@@ -39,16 +43,19 @@ function SideSelections({
   setSelectQuantity,
   selectedQuantities,
   setSelectedQuantities,
-  DateValue,
-  setDateValue,
+  inspectionDateValue,
+  setInspectionDateValue,
+  ComparisonDateValue,
+  setComparisonDateValue,
   periodOptions,
   selectedPeriod,
   setSelectedPeriod,
   selectedFrequency,
   setSelectedFrequency,
 }) {
-  console.log("meter options:", meterOptions);
+  // console.log("meter options:", meterOptions);
 
+  const names = ["Min - Consumption", "Max - Consumption"];
   const quantityOptions = [
     {
       label: "Electricity",
@@ -171,7 +178,7 @@ function SideSelections({
         </Accordion>
         <Accordion className="w-[300px]">
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography>Qaunity/Meter</Typography>
+            <Typography>Quanity/Meter</Typography>
           </AccordionSummary>
           <AccordionDetails sx={{ width: "400px", height: "100%" }}>
             <Box component="section" className="flex flex-row gap-2 ">
@@ -282,9 +289,30 @@ function SideSelections({
               </FormControl>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
-                  label="Select Date"
-                  value={DateValue ? dayjs(DateValue) : null}
-                  onChange={(val) => setDateValue(val)}
+                  label="Inspection Period"
+                  value={
+                    inspectionDateValue ? dayjs(inspectionDateValue) : null
+                  }
+                  onChange={(val) =>
+                    setInspectionDateValue(
+                      val ? val.startOf("day").toISOString() : null
+                    )
+                  }
+                  sx={{ width: "100%" }}
+                />
+              </LocalizationProvider>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  label="Comparison Period"
+                  name="Comparison Period"
+                  value={
+                    ComparisonDateValue ? dayjs(ComparisonDateValue) : null
+                  }
+                  onChange={(val) =>
+                    setComparisonDateValue(
+                      val ? val.startOf("day").toISOString() : null
+                    )
+                  }
                   sx={{ width: "100%" }}
                 />
               </LocalizationProvider>
@@ -307,14 +335,48 @@ function SideSelections({
               <Select
                 labelId="consumption-select-label"
                 id="consumption-select"
-                value={facilityID}
-                label="Consumption Target"
-                onChange={handleChange}
+                multiple
+                value={consumptionTargets}
+                onChange={(event) => {
+                  const {
+                    target: { value },
+                  } = event;
+                  setConsumptionTargets(
+                    typeof value === "string" ? value.split(",") : value
+                  );
+                }}
+                input={<OutlinedInput label="Consumption Target" />}
+                renderValue={(selected) => selected.join(", ")}
               >
-                <MenuItem value="MinConsumption">Min - Consumption</MenuItem>
-                <MenuItem value="MaxConsumption">Max - Consumption</MenuItem>
+                {names.map((name) => (
+                  <MenuItem key={name} value={name}>
+                    <Checkbox checked={consumptionTargets.includes(name)} />
+                    <ListItemText primary={name} />
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
+            {/* 
+            <FormControl sx={{ m: 1, width: 300 }}>
+              <InputLabel id="demo-multiple-checkbox-label">Tag</InputLabel>
+              <Select
+                labelId="demo-multiple-checkbox-label"
+                id="demo-multiple-checkbox"
+                multiple
+                value={facilityID}
+                onChange={handleChange}
+                input={<OutlinedInput label="Tag" />}
+                renderValue={(selected) => selected.join(", ")}
+                // MenuProps={MenuProps}
+              >
+                {names.map((name) => (
+                  <MenuItem key={name} value={name}>
+                    <Checkbox checked={facilityID.includes(name)} />
+                    <ListItemText primary={name} />
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl> */}
           </AccordionDetails>
         </Accordion>
       </Box>
