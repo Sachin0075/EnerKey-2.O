@@ -90,7 +90,7 @@ function AppComponent() {
               resource="organization"
               userRole={auth.role}
             >
-              <Organization />
+              <Organization role={auth.role} />
             </ProtectedRoute>
           }
         />
@@ -102,7 +102,7 @@ function AppComponent() {
               resource="facilities"
               userRole={auth.role}
             >
-              <Facilities />
+              <Facilities role={auth.role} />
             </ProtectedRoute>
           }
         />
@@ -114,7 +114,7 @@ function AppComponent() {
               resource="users"
               userRole={auth.role}
             >
-              <Users />
+              <Users role={auth.role} />
             </ProtectedRoute>
           }
         />

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import FacilityBasicTable from "../components/Facilities/FacilityBasicTable";
 import AddButton from "../components/Organization/AddButton";
 import AddButtonFacility from "../components/Facilities/Modals/AddButtonFacility";
@@ -6,9 +6,13 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import { useState } from "react";
 
-const Facilities = () => {
+const Facilities = ({ role }) => {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState([]);
+
+  // useEffect(() => {
+  //   getprofile();
+  // });
   async function getAllFacilities() {
     setLoading(true);
     const token = localStorage.getItem("token");
