@@ -10,6 +10,7 @@ import getProfile from "../services/JWT/getProfile";
 const Facilities = ({ role }) => {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState([]);
+  const [OrgName, setOrgName] = useState("");
 
   // useEffect(() => {
   //   getprofile();
@@ -38,7 +39,11 @@ const Facilities = ({ role }) => {
       console.error("Error fetching facilities:", error);
       setRows([]);
       setLoading(true);
-      toast.error("Failed to fetch facilities. Please try again later.");
+      toast.error("Failed to fetch facilities. Please try again later.", {
+        position: "top-right",
+        autoClose: 2000,
+        style: { background: "#f44336", color: "#fff" },
+      });
     }
   }
   async function getAdminFacilities() {
@@ -66,7 +71,11 @@ const Facilities = ({ role }) => {
       console.error("Error fetching facilities:", error);
       setRows([]);
       setLoading(true);
-      toast.error("Failed to fetch facilities. Please try again later.");
+      toast.error("Failed to fetch facilities. Please try again later.", {
+        position: "top-right",
+        autoClose: 2000,
+        style: { background: "#f44336", color: "#fff" },
+      });
     }
   }
   async function getUserFacilities() {
@@ -94,14 +103,20 @@ const Facilities = ({ role }) => {
       console.error("Error fetching facilities:", error);
       setRows([]);
       setLoading(true);
-      toast.error("Failed to fetch facilities. Please try again later.");
+      toast.error("Failed to fetch facilities. Please try again later.", {
+        position: "top-right",
+        autoClose: 2000,
+        style: { background: "#f44336", color: "#fff" },
+      });
     }
   }
 
   return (
     <div>
-      {role === "superadmin" ? (
+      {role === "superadmin" || role === "customeradmin" ? (
         <AddButtonFacility
+          OrgName={OrgName}
+          setOrgName={setOrgName}
           rows={rows}
           role={role}
           loading={loading}
@@ -131,6 +146,8 @@ const Facilities = ({ role }) => {
             ? getAdminFacilities
             : getUserFacilities
         }
+        OrgName={OrgName}
+        setOrgName={setOrgName}
       />
     </div>
   );

@@ -20,21 +20,28 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import AddMeter from "./AddMeter.jsx";
 import EditFacility from "./EditFacility.jsx";
+import { getOrganizationNameById } from "../../services/DataServices/getAllOrganizationsIDnName.js";
 
 export default function FacilityBasicTable({
   rows,
   getAllFacilities,
   loading,
   role,
+  OrgName,
+  setOrgName,
 }) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isviewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const [facilityId, setFacilityId] = useState([]);
+  console.log("Organization name:", OrgName);
 
   useEffect(() => {
     getAllFacilities();
+    if (role === "superadmin") {
+      setOrgName();
+    }
   }, []);
 
   function handleAddopen(facilityId) {
@@ -76,15 +83,20 @@ export default function FacilityBasicTable({
         });
         console.log("API response data:", response.data);
         if (response.status === 200) {
-          toast.error(`${row.name} deleted successfully!`);
+          toast.success(`${row.name} deleted successfully!`);
           getAllFacilities();
         }
       } catch (error) {
         console.error("Error deleting facility:", error);
+        toast.error(`Failed to delete facility ${row.name}. Please try again.`);
       }
     }
   }
-
+  async function getOrgNameByID(id) {
+    const name = await getOrganizationNameById(id);
+    setOrgName(name);
+    console.log("Organization Name:", name);
+  }
   return (
     <>
       {isAddModalOpen && (
@@ -150,7 +162,11 @@ export default function FacilityBasicTable({
                 >
                   Pincode
                 </TableCell>
-
+                <TableCell
+                  style={{ fontWeight: 600, color: "#3160b6", padding: "8px" }}
+                >
+                  Assigned Company
+                </TableCell>
                 <TableCell
                   style={{ fontWeight: 600, color: "#3160b6", padding: "8px" }}
                 >
@@ -162,9 +178,14 @@ export default function FacilityBasicTable({
                   Max Consumption
                 </TableCell>
                 <TableCell
-                  style={{ fontWeight: 600, color: "#3160b6", padding: "8px" }}
+                  style={{
+                    fontWeight: 600,
+                    color: "#3160b6",
+                    padding: "8px",
+                    textAlign: "center",
+                  }}
                 >
-                  Meter
+                  Meter Name
                 </TableCell>
                 {(role === "superadmin" || role === "customeradmin") && (
                   <TableCell
@@ -172,6 +193,7 @@ export default function FacilityBasicTable({
                       fontWeight: 600,
                       color: "#3160b6",
                       padding: "8px",
+                      textAlign: "center",
                     }}
                   >
                     Actions
@@ -183,7 +205,7 @@ export default function FacilityBasicTable({
               {loading
                 ? Array.from({ length: 5 }).map((_, idx) => (
                     <TableRow key={idx}>
-                      {Array.from({ length: 9 }).map((_, cellIdx) => (
+                      {Array.from({ length: 10 }).map((_, cellIdx) => (
                         <TableCell key={cellIdx} style={{ padding: "8px" }}>
                           <Skeleton variant="rectangular" height={24} />
                         </TableCell>
@@ -208,12 +230,22 @@ export default function FacilityBasicTable({
                         {row.pinCode}
                       </TableCell>
                       <TableCell style={{ padding: "8px" }}>
+                        {role === "superadmin"
+                          ? () => {
+                              getOrgNameByID(rows.organizationId);
+                            }
+                          : OrgName}
+                      </TableCell>
+                      <TableCell style={{ padding: "8px" }}>
                         {row.targetA}
                       </TableCell>
                       <TableCell style={{ padding: "8px" }}>
                         {row.targetB}
                       </TableCell>
-                      <TableCell style={{ padding: "8px" }}>
+                      <TableCell
+                        style={{ padding: "8px", textAlign: "center" }}
+                      >
+                        {/* Meter Name or ID can be shown here if available, else just show View/Add */}
                         <Button
                           variant="outlined"
                           size="small"
@@ -226,17 +258,18 @@ export default function FacilityBasicTable({
                         >
                           View
                         </Button>
+                        <IconButton
+                          onClick={() => handleAddopen(row.facilityId)}
+                          color="primary"
+                          size="small"
+                        >
+                          <AddIcon />
+                        </IconButton>
                       </TableCell>
-                      {role === "superadmin" && (
-                        <TableCell style={{ padding: "8px" }}>
-                          <IconButton
-                            onClick={() => handleAddopen(row.facilityId)}
-                            color="primary"
-                            size="small"
-                          >
-                            <AddIcon />
-                          </IconButton>
-
+                      {(role === "superadmin" || role === "customeradmin") && (
+                        <TableCell
+                          style={{ padding: "8px", textAlign: "center" }}
+                        >
                           <IconButton
                             color="primary"
                             size="small"
@@ -245,9 +278,7 @@ export default function FacilityBasicTable({
                             <EditIcon />
                           </IconButton>
                           <IconButton
-                            onClick={() => {
-                              handleDelete(row);
-                            }}
+                            onClick={() => handleDelete(row)}
                             color="primary"
                             size="small"
                           >

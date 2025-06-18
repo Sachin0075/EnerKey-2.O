@@ -4,7 +4,8 @@ import EnergyDashboard from "../components/Dashboard/EnergyChart";
 import { useState } from "react";
 import { getAllFacilitiesGroupedByOrgID } from "../services/DataServices/FacilityService";
 import { getAllOrganizationsIDnName } from "../services/DataServices/getAllOrganizationsIDnName";
-// import axios from "axios";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
 const Dashboard = ({ name, role }) => {
   const [orgNames, setOrgNames] = useState({});
@@ -48,7 +49,12 @@ const Dashboard = ({ name, role }) => {
 
   // Show loading state while data is being fetched
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div style={{ padding: 24 }}>
+        <Skeleton height={32} width={200} style={{ marginBottom: 16 }} />
+        <Skeleton height={40} style={{ marginBottom: 8 }} count={4} />
+      </div>
+    );
   }
 
   return (

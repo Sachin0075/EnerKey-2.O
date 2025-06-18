@@ -18,7 +18,7 @@ import { getAllOrganizationsIDnName } from "../../services/DataServices/getAllOr
 import { toast } from "react-toastify";
 import axios from "axios";
 
-function EditUserModal({ open, handleClose, getAllUser, userId, OrgId }) {
+function EditUserModal({ open, handleClose, getAllUser, userId, OrgId, role }) {
   const [names, setNames] = useState([]);
   console.log(names);
   useEffect(() => {
@@ -239,6 +239,7 @@ function EditUserModal({ open, handleClose, getAllUser, userId, OrgId }) {
                 onChange={handleOrgChange}
                 onBlur={handleOrgBlur}
                 input={<OutlinedInput label="  Organization Name" />}
+                disabled={role !== "superadmin"}
               >
                 {names &&
                   Object.entries(names).map(([id, name]) => (

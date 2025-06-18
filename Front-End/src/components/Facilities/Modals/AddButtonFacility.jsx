@@ -5,7 +5,7 @@ import FacilityModal1 from "./FacilityModal1";
 import FacilityModal2 from "./FacilityModal2";
 // import axios from "axios";
 
-function AddButtonFacility({ getAllFacilities }) {
+function AddButtonFacility({ getAllFacilities, OrgName, role, setOrgName }) {
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [organizations, setOrganizations] = useState({});
@@ -42,8 +42,11 @@ function AddButtonFacility({ getAllFacilities }) {
 
       {page === 1 ? (
         <FacilityModal1
+          role={role}
           handlePageChange={handlePageChange}
           open={open}
+          OrgName={OrgName}
+          setOrgName={setOrgName}
           organizations={organizations}
           handleClose={() => setOpen(false)}
           value={value}

@@ -17,8 +17,9 @@ import { useEffect } from "react";
 import { getAllOrganizationsIDnName } from "../../services/DataServices/getAllOrganizationsIDnName";
 import { toast } from "react-toastify";
 import axios from "axios";
+import getProfile from "../../services/JWT/getProfile";
 
-function AddUserModal({ open, handleClose, getAllUser }) {
+function AddUserModal({ open, handleClose, getAllUser, role }) {
   const [names, setNames] = useState([]);
   console.log(names);
   useEffect(() => {
@@ -49,6 +50,17 @@ function AddUserModal({ open, handleClose, getAllUser }) {
     confirmPassword: false,
     role: false,
   });
+
+  useEffect(() => {
+    if (role !== "superadmin") {
+      async function fetchOrgId() {
+        const orgId = await getProfile();
+        // console.log("Fetched Organization ID:", orgId);
+        setValue((curr) => ({ ...curr, organization: orgId }));
+      }
+      fetchOrgId();
+    }
+  }, []);
 
   const handleFieldChange = (e) => {
     const { name, value: val } = e.target;
@@ -202,34 +214,36 @@ function AddUserModal({ open, handleClose, getAllUser }) {
                 errors.contact ? "Enter a valid 10-digit contact number" : ""
               }
             />
-            <FormControl
-              sx={{ width: 300, marginTop: 2 }}
-              error={errors.organization}
-            >
-              <InputLabel id="demo-single-name-label">
-                Organization Name
-              </InputLabel>
-              <Select
-                labelId="demo-single-name-label"
-                id="demo-single-name"
-                value={value.organization}
-                onChange={handleOrgChange}
-                onBlur={handleOrgBlur}
-                input={<OutlinedInput label="  Organization Name" />}
+            {role === "superadmin" && (
+              <FormControl
+                sx={{ width: 300, marginTop: 2 }}
+                error={errors.organization}
               >
-                {names &&
-                  Object.entries(names).map(([id, name]) => (
-                    <MenuItem key={id} value={id}>
-                      {name}
-                    </MenuItem>
-                  ))}
-              </Select>
-              {errors.organization && (
-                <span style={{ color: "red", fontSize: 12, marginLeft: 14 }}>
-                  Select Organization
-                </span>
-              )}
-            </FormControl>
+                <InputLabel id="demo-single-name-label">
+                  Organization Name
+                </InputLabel>
+                <Select
+                  labelId="demo-single-name-label"
+                  id="demo-single-name"
+                  value={value.organization}
+                  onChange={handleOrgChange}
+                  onBlur={handleOrgBlur}
+                  input={<OutlinedInput label="  Organization Name" />}
+                >
+                  {names &&
+                    Object.entries(names).map(([id, name]) => (
+                      <MenuItem key={id} value={id}>
+                        {name}
+                      </MenuItem>
+                    ))}
+                </Select>
+                {errors.organization && (
+                  <span style={{ color: "red", fontSize: 12, marginLeft: 14 }}>
+                    Select Organization
+                  </span>
+                )}
+              </FormControl>
+            )}
             <TextField
               label="Password"
               name="password"

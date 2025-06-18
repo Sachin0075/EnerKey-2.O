@@ -71,11 +71,6 @@ const EnergyDashboard = ({
   };
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 300);
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
     if (!selectedFacilityID || typeof selectedFacilityID !== "string") return;
     setLoading(true);
 
@@ -148,42 +143,45 @@ const EnergyDashboard = ({
         const response = await axios.post(url, payload, {
           headers: { Authorization: `${token}` },
         });
-        const apiData = response.data;
-        if (apiData && Array.isArray(apiData.consumption)) {
-          return apiData.consumption.reduce(
+        if (response.data && Array.isArray(response.data.consumption)) {
+          return response.data.consumption.reduce(
             (sum, item) => sum + (item.consumedValue || 0),
             0
           );
         }
+        return 0;
       } catch (error) {
-        console.error(`Error fetching for quantityId ${qId}:`, error);
+        return 0;
       }
-      return 0;
     };
 
     async function fetchAllPieData() {
-      const [electricity, water, gas] = await Promise.all([
-        fetchAndSum(1),
-        fetchAndSum(2),
-        fetchAndSum(3),
-      ]);
-      setPieChartData({
-        labels: ["Electricity", "Water", "Gas"],
-        datasets: [
-          {
-            data: [electricity, water, gas],
-            backgroundColor: [
-              barColors.Electricity,
-              barColors.Water,
-              barColors.Gas,
-            ],
-            borderWidth: 0,
-          },
-        ],
-      });
-      setLoading(false);
+      try {
+        const [electricity, water, gas] = await Promise.all([
+          fetchAndSum(1),
+          fetchAndSum(2),
+          fetchAndSum(3),
+        ]);
+        setPieChartData({
+          labels: ["Electricity", "Water", "Gas"],
+          datasets: [
+            {
+              data: [electricity, water, gas],
+              backgroundColor: [
+                barColors.Electricity,
+                barColors.Water,
+                barColors.Gas,
+              ],
+              borderWidth: 0,
+            },
+          ],
+        });
+      } catch (error) {
+        // Optionally handle error
+      } finally {
+        setLoading(false);
+      }
     }
-
     fetchAllPieData();
   }, [frequency, selectedFacilityID]);
 

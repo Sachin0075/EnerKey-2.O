@@ -155,7 +155,12 @@ export default function BasicTable() {
                   Address
                 </TableCell>
                 <TableCell
-                  style={{ fontWeight: 600, color: "#3160b6", padding: "8px" }}
+                  style={{
+                    fontWeight: 600,
+                    color: "#3160b6",
+                    marginLeft: 12,
+                    padding: "12px",
+                  }}
                 >
                   Admins
                 </TableCell>
@@ -198,8 +203,6 @@ export default function BasicTable() {
                     >
                       View
                     </Button>
-                  </TableCell>
-                  <TableCell style={{ padding: "8px" }}>
                     <IconButton
                       onClick={() => handleAddopen(row.organizationId)}
                       color="primary"
@@ -207,6 +210,8 @@ export default function BasicTable() {
                     >
                       <AddIcon />
                     </IconButton>
+                  </TableCell>
+                  <TableCell style={{ padding: "8px" }}>
                     <IconButton
                       color="primary"
                       size="small"

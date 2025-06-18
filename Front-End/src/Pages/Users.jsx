@@ -12,31 +12,24 @@ const Users = ({ role }) => {
   const [rows, setRows] = useState([]);
   const [orgMap, setOrgMap] = useState({});
   const [loading, setLoading] = useState(true);
-  const [orgId, setOrgId] = useState(null);
+  const [orgId, setOrgId] = useState("");
 
   useEffect(() => {
-    async function fetchData() {
-      if (role === "superadmin") {
-        await getAllUser();
-      } else if (role === "customeradmin") {
-        try {
-          const organizationId = await getProfile();
-          setOrgId(organizationId);
-          if (organizationId) {
-            await getAdminUser(organizationId);
-          } else {
-            setRows([]);
-            setLoading(false);
-          }
-        } catch (error) {
+    if (role === "superadmin" || role === "customeradmin") {
+      try {
+        async function getOrgId() {
+          const id = await getProfile();
+          setOrgId(id);
           setLoading(false);
-          toast.error(
-            `Failed to fetch user profile. Please try again later. ${error}`
-          );
         }
+        getOrgId();
+      } catch (error) {
+        setLoading(true);
+        toast.error(
+          `Failed to fetch user profile. Please try again later.${error}`
+        );
       }
     }
-    fetchData();
     // eslint-disable-next-line
   }, [role]);
 
@@ -67,7 +60,7 @@ const Users = ({ role }) => {
     }
   }
 
-  async function getAdminUser(orgId) {
+  async function getAdminUser() {
     if (!orgId) {
       console.error("Organization ID is not provided.");
       setLoading(false);
@@ -140,7 +133,7 @@ const Users = ({ role }) => {
     <div>
       <AddButtonUser />
       <UsersTable
-        rows={role === "superadmin" ? rows : rows.filter(u => u.organizationId === orgId)}
+        rows={rows}
         getAllUser={role === "superadmin" ? getAllUser : getAdminUser}
         orgMap={orgMap}
       />

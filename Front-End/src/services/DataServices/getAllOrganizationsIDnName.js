@@ -52,3 +52,26 @@ export async function getAllOrganizationsName() {
     return [];
   }
 }
+
+
+export async function getOrganizationNameById(organizationId) {
+  if (!organizationId) return null;
+  try {
+    const token = localStorage.getItem("token");
+    const url = `https://localhost:7162/api/Organization/getorganizationid/${organizationId}`;
+    const response = await axios.get(url, {
+      headers: { Authorization: `${token}` },
+    });
+    if (response.status === 200 && response.data && response.data.name) {
+      return response.data.name;
+    }
+    // Some APIs may return the name inside response.data.data
+    if (response.data && response.data.data && response.data.data.name) {
+      return response.data.data.name;
+    }
+    return null;
+  } catch (error) {
+    console.error("Error fetching organization name:", error);
+    return null;
+  }
+}

@@ -123,7 +123,7 @@ function FacilityModal2({
       }
     } catch (error) {
       setSubmitError(error?.response?.data?.title || "Failed to add meter");
-      toast.error(error?.response?.data?.title || "Failed to add meter");
+      toast.error("Failed to add meter. Please try again.");
     }
   }
 

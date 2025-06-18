@@ -48,7 +48,7 @@ function Login() {
       const response = await axios.post(url, payload);
       const token = response.data.token;
       if (response.status === 200 && token) {
-        toast("Login successful! 🐦‍🔥", {
+        toast.success("Login successful! ", {
           position: "top-right",
           autoClose: 1200,
           hideProgressBar: false,
@@ -60,7 +60,7 @@ function Login() {
           transition: Bounce,
         });
         localStorage.setItem("token", token);
-        navigate("/");
+        window.location.href = "/"; // Force reload to refresh all data
       } else {
         toast.error("Login failed. Please check your credentials.", {
           position: "top-right",
@@ -130,18 +130,8 @@ function Login() {
                 marginBottom: "8px",
               }}
             >
-              Sign
+              Sign In
             </h2>
-            <p
-              style={{
-                color: "#64748b",
-                fontSize: "16px",
-                margin: 0,
-                fontWeight: "400",
-              }}
-            >
-              Sign in to your account
-            </p>
           </div>
 
           <form
@@ -321,6 +311,7 @@ function Login() {
 
             <Button
               variant="text"
+              onClick={() => navigate("/forgot")}
               sx={{
                 mt: 1,
                 textTransform: "none",

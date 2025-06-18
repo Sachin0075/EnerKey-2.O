@@ -199,7 +199,7 @@ const Navbar = ({ role, name }) => {
                       localStorage.removeItem("token");
                       navigate("/login");
                       setActivePath("/login");
-                      toast.info("Logged out successfully", {
+                      toast.success("Logged out successfully", {
                         position: "top-right",
                         autoClose: 2000,
                       });

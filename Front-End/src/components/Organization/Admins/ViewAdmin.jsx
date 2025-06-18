@@ -79,6 +79,7 @@ function ViewAdmin({ isModalopen, handleClose, OrgID }) {
       }
     } catch (error) {
       console.error("Error deleting admin:", error);
+      toast.error("Failed to delete admin. Please try again.");
     }
   }
   async function handleUpdateAdmin(id) {

@@ -16,6 +16,8 @@ import {
   getAllCountries,
   getCitiesByCountryId,
 } from "../../../services/DataServices/CountryService";
+import getProfile from "../../../services/JWT/getProfile";
+import { getOrganizationNameById } from "../../../services/DataServices/getAllOrganizationsIDnName";
 
 function FacilityModal1({
   open,
@@ -25,6 +27,9 @@ function FacilityModal1({
   setOrganizations,
   value,
   setValue,
+  role,
+  // OrgName,
+  setOrgName,
 }) {
   const [error, setError] = useState({
     name: false,
@@ -41,6 +46,19 @@ function FacilityModal1({
   const [country, setCountry] = useState([]);
   const [cityNames, setCityNames] = useState([]);
   const [selectedID, setSelectedID] = useState(null);
+
+  useEffect(() => {
+    async function getOrgId() {
+      const orgId = await getProfile();
+      const orgname = await getOrganizationNameById(await orgId);
+      setOrgName(orgname);
+      setValue((curr) => ({ ...curr, organizationId: orgId }));
+    }
+    // Only set organization for non-superadmin roles
+    if (role !== "superadmin") {
+      getOrgId();
+    }
+  }, [role]);
 
   useEffect(() => {
     async function fetchCountries() {
@@ -144,6 +162,7 @@ function FacilityModal1({
     }));
     handlePageChange(2);
   }
+  // console.log("FacilityModal1 role:", role);
   return (
     <div>
       <Dialog open={open} onClose={handleClose}>
@@ -184,9 +203,9 @@ function FacilityModal1({
                 error={error.country}
                 displayEmpty
               >
-                {country.map((country) => (
+                {country.map((country, idx) => (
                   <MenuItem
-                    key={country.id}
+                    key={country.id + idx}
                     value={country.name}
                     onClick={() => setSelectedID(country.id)}
                   >
@@ -213,8 +232,8 @@ function FacilityModal1({
                 error={error.city}
                 displayEmpty
               >
-                {cityNames.map((city) => (
-                  <MenuItem key={city} value={city}>
+                {cityNames.map((city, idx) => (
+                  <MenuItem key={city + idx} value={city}>
                     {city}
                   </MenuItem>
                 ))}
@@ -265,6 +284,7 @@ function FacilityModal1({
                 onChange={handleChange}
                 onBlur={handleBlur}
                 error={error.organizationId}
+                disabled={role !== "superadmin"}
               >
                 {Object.entries(organizations).map(([id, name]) => (
                   <MenuItem key={id} value={id}>
