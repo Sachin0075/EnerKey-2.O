@@ -56,7 +56,6 @@ function SideSelections({
   setSelectedPeriod,
   selectedFrequency,
   setSelectedFrequency,
-  role,
 }) {
   // console.log("meter options:", meterOptions);
 
