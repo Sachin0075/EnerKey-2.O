@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import OutlinedInput from "@mui/material/OutlinedInput";
+import ClearIcon from "@mui/icons-material/Clear";
 import ListItemText from "@mui/material/ListItemText";
 import {
   Accordion,
@@ -35,10 +36,8 @@ function SideSelections({
   facilitiesByOrg = {},
   orgNames = {},
   facilityID = "",
-  meterId,
   meterOptions,
   setMeterOptions,
-  setMeterId,
   handleChange,
   tabValue,
   setTabValue,
@@ -57,27 +56,31 @@ function SideSelections({
   setSelectedPeriod,
   selectedFrequency,
   setSelectedFrequency,
+  role,
 }) {
   // console.log("meter options:", meterOptions);
 
   const names = ["Min-Consumption", "Max-Consumption"];
-  const quantityOptions = [
-    {
-      label: "Electricity",
-      icon: <BoltIcon sx={{ color: "#a259e6", mr: 1 }} />,
-      value: "Electricity",
-    },
-    {
-      label: "Water",
-      icon: <OpacityIcon sx={{ color: "#6ec6f3", mr: 1 }} />,
-      value: "Water",
-    },
-    {
-      label: "Gas",
-      icon: <LocalFireDepartmentIcon sx={{ color: "#ff7b7b", mr: 1 }} />,
-      value: "Gas",
-    },
-  ];
+  const quantityOptions = React.useMemo(
+    () => [
+      {
+        label: "Electricity",
+        icon: <BoltIcon sx={{ color: "#a259e6", mr: 1 }} />,
+        value: "Electricity",
+      },
+      {
+        label: "Water",
+        icon: <OpacityIcon sx={{ color: "#6ec6f3", mr: 1 }} />,
+        value: "Water",
+      },
+      {
+        label: "Gas",
+        icon: <LocalFireDepartmentIcon sx={{ color: "#ff7b7b", mr: 1 }} />,
+        value: "Gas",
+      },
+    ],
+    []
+  );
 
   // console.log("Meter options:", meterOptions);
 
@@ -487,43 +490,6 @@ function SideSelections({
                       )}
                     />
                     <ListItemText primary={name} />
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl fullWidth sx={{ m: 1, width: 300 }}>
-              <InputLabel id="meter-multiselect-label">Meters</InputLabel>
-              <Select
-                labelId="meter-multiselect-label"
-                id="meter-multiselect"
-                multiple
-                value={selectedMeters || []}
-                onChange={(event) => {
-                  const {
-                    target: { value },
-                  } = event;
-                  setSelectedMeters(
-                    typeof value === "string" ? value.split(",") : value
-                  );
-                }}
-                input={<OutlinedInput label="Meters" />}
-                renderValue={(selected) =>
-                  meterOptions
-                    .filter((option) =>
-                      (Array.isArray(selected) ? selected : []).includes(
-                        option.id
-                      )
-                    )
-                    .map((option) => option.name)
-                    .join(", ")
-                }
-              >
-                {meterOptions.map((option) => (
-                  <MenuItem key={option.id} value={option.id}>
-                    <Checkbox
-                      checked={(selectedMeters || []).includes(option.id)}
-                    />
-                    <ListItemText primary={option.name} />
                   </MenuItem>
                 ))}
               </Select>

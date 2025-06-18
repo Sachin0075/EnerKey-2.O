@@ -4,31 +4,59 @@ import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import { useEffect, useState } from "react";
+import getProfile from "../../services/JWT/getProfile";
 
 export default function FacilityDropDown({
   facilitiesByOrgID,
   orgNames,
   setSelectedFacilityID,
+  role,
 }) {
   const orgIds = Object.keys(facilitiesByOrgID);
   const [facility, setFacility] = useState("");
+  const [filteredOrgIds, setFilteredOrgIds] = useState(orgIds);
 
   useEffect(() => {
-    if (orgIds.length > 0) {
-      const firstOrgId = orgIds[0];
-      const facilities = facilitiesByOrgID[firstOrgId];
-      if (facilities && facilities.length > 0) {
-        setFacility(facilities[0].facilityId);
-        setSelectedFacilityID &&
-          setSelectedFacilityID(facilities[0].facilityId);
+    async function filterFacilities() {
+      if (role === "superadmin") {
+        setFilteredOrgIds(orgIds);
+        if (orgIds.length > 0) {
+          const firstOrgId = orgIds[0];
+          const facilities = facilitiesByOrgID[firstOrgId];
+          if (facilities && facilities.length > 0) {
+            setFacility(facilities[0].facilityId);
+            setSelectedFacilityID &&
+              setSelectedFacilityID(facilities[0].facilityId);
+          }
+        }
+      } else {
+        const profileOrgID = await getProfile();
+        if (profileOrgID && facilitiesByOrgID[profileOrgID]) {
+          setFilteredOrgIds([profileOrgID]);
+          const facilities = facilitiesByOrgID[profileOrgID];
+          if (facilities && facilities.length > 0) {
+            setFacility(facilities[0].facilityId);
+            setSelectedFacilityID &&
+              setSelectedFacilityID(facilities[0].facilityId);
+          } else {
+            setFacility("");
+            setSelectedFacilityID && setSelectedFacilityID("");
+          }
+        } else {
+          setFilteredOrgIds([]);
+          setFacility("");
+          setSelectedFacilityID && setSelectedFacilityID("");
+        }
       }
     }
-  }, [facilitiesByOrgID, setSelectedFacilityID]);
+    filterFacilities();
+  }, [facilitiesByOrgID, setSelectedFacilityID, role]);
 
   const handleChange = (event) => {
     setFacility(event.target.value);
     setSelectedFacilityID && setSelectedFacilityID(event.target.value);
   };
+  console.log("orgIds", orgIds);
 
   return (
     <FormControl sx={{ minWidth: 180 }} size="small">
@@ -40,7 +68,7 @@ export default function FacilityDropDown({
         label="Choose Facility"
         onChange={handleChange}
       >
-        {orgIds.map((orgId) => [
+        {filteredOrgIds.map((orgId) => [
           <MenuItem
             key={orgId}
             value=""

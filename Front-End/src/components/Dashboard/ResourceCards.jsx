@@ -24,13 +24,16 @@ const ResourceCards = ({
   fetchgraph,
   setSelectedFacilityID,
   quantityId, // <-- add this prop
+  name,
+  role,
 }) => {
   return (
     <>
       <div className=" flex  justify-around gap-96 mt-6 ! ">
-        <h1 className="text-2xl text-[rgb(51,104,192)] mr-52 ">Hi, Sachin</h1>
+        <h1 className="text-2xl text-[rgb(51,104,192)] mr-52 ">Hi, {name}</h1>
         <div>
           <FacilityDropDown
+            role={role}
             setSelectedFacilityID={setSelectedFacilityID}
             facilitiesByOrgID={facilitiesByOrgID}
             setFacilitiesByOrg={setFacilitiesByOrg}

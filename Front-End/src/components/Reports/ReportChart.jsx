@@ -48,7 +48,7 @@ function ReportChart({
   selectedPeriod,
   selectedFrequency,
   consumptionTargets,
-  setConsumptionTargets,
+
   meterOptions = [], // <-- add default for meterOptions
 }) {
   const [allChartData, setAllChartData] = useState([]);

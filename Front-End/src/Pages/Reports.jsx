@@ -5,6 +5,7 @@ import { getAllFacilitiesGroupedByOrgID } from "../services/DataServices/Facilit
 import { getAllOrganizationsIDnName } from "../services/DataServices/getAllOrganizationsIDnName";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import getProfile from "../services/JWT/getProfile.js";
 
 dayjs.extend(utc);
 
@@ -15,7 +16,7 @@ const periodOptions = {
   Week: ["Week", "Day"],
 };
 
-const Reports = () => {
+const Reports = ({ role }) => {
   const [facilityID, setFacilityID] = useState("");
   const [facilitiesByOrg, setFacilitiesByOrg] = useState({});
   const [orgNames, setOrgNames] = useState({});
@@ -27,7 +28,7 @@ const Reports = () => {
   );
   const [ComparisonDateValue, setComparisonDateValue] = useState(null);
   const [meterOptions, setMeterOptions] = useState([]);
-  const [meterId, setMeterId] = useState([]);
+  // const [meterId, setMeterId] = useState([]);
   const [selectedPeriod, setSelectedPeriod] = useState("Year");
   const [selectedFrequency, setSelectedFrequency] = useState("Month");
   const [consumptionTargets, setConsumptionTargets] = useState([]);
@@ -46,7 +47,35 @@ const Reports = () => {
       const orgs = await getAllOrganizationsIDnName();
       setOrgNames(orgs);
     }
-    fetchFacilitiesAndOrgs();
+    async function fetchProfile() {
+      try {
+        const profileOrgID = await getProfile();
+        if (profileOrgID) {
+          // Only fetch and show facilities for this orgId
+          const grouped = await getAllFacilitiesGroupedByOrgID(profileOrgID);
+          setFacilitiesByOrg({ [profileOrgID]: grouped[profileOrgID] || [] });
+          // Only set orgNames for this orgId
+          const orgs = await getAllOrganizationsIDnName();
+          setOrgNames(
+            orgs && orgs[profileOrgID]
+              ? { [profileOrgID]: orgs[profileOrgID] }
+              : {}
+          );
+        } else {
+          setFacilitiesByOrg({});
+          setOrgNames({});
+        }
+      } catch (error) {
+        console.error("Error fetching profile or facilities:", error);
+        setFacilitiesByOrg({});
+        setOrgNames({});
+      }
+    }
+    if (role === "superadmin") {
+      fetchFacilitiesAndOrgs();
+    } else {
+      fetchProfile();
+    }
   }, []);
 
   useEffect(() => {
@@ -64,6 +93,7 @@ const Reports = () => {
   return (
     <div className="flex flex-col md:flex-row gap-4 p-4 mt-4 h-screen">
       <SideSelections
+        role={role}
         facilityID={facilityID}
         setFacilityID={setFacilityID}
         orgIds={orgIds}
@@ -82,8 +112,6 @@ const Reports = () => {
         handleChange={handleFacilityChange}
         setMeterOptions={setMeterOptions}
         meterOptions={meterOptions}
-        meterId={meterId}
-        setMeterId={setMeterId}
         periodOptions={periodOptions}
         selectedPeriod={selectedPeriod}
         setSelectedPeriod={setSelectedPeriod}
@@ -96,6 +124,7 @@ const Reports = () => {
       />
       <div className=" border-l-2 border-gray-300 h-full"></div>
       <ReportChart
+        role={role}
         facilityID={facilityID}
         orgIds={orgIds}
         facilitiesByOrg={facilitiesByOrg}

@@ -6,7 +6,7 @@ import { getAllFacilitiesGroupedByOrgID } from "../services/DataServices/Facilit
 import { getAllOrganizationsIDnName } from "../services/DataServices/getAllOrganizationsIDnName";
 // import axios from "axios";
 
-const Dashboard = () => {
+const Dashboard = ({ name, role }) => {
   const [orgNames, setOrgNames] = useState({});
   const [facilitiesByOrgID, setFacilitiesByOrgID] = useState({});
   const [selectedFacilityID, setSelectedFacilityID] = useState();
@@ -54,6 +54,8 @@ const Dashboard = () => {
   return (
     <div>
       <ResourceCards
+        name={name}
+        role={role}
         setSelectedFacilityID={setSelectedFacilityID}
         setquantityId={setquantityId}
         facilitiesByOrgID={facilitiesByOrgID}

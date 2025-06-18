@@ -202,7 +202,10 @@ function AddUserModal({ open, handleClose, getAllUser }) {
                 errors.contact ? "Enter a valid 10-digit contact number" : ""
               }
             />
-            <FormControl sx={{ width: 300 }} error={errors.organization}>
+            <FormControl
+              sx={{ width: 300, marginTop: 2 }}
+              error={errors.organization}
+            >
               <InputLabel id="demo-single-name-label">
                 Organization Name
               </InputLabel>

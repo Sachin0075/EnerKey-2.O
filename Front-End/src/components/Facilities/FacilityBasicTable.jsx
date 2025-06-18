@@ -25,6 +25,7 @@ export default function FacilityBasicTable({
   rows,
   getAllFacilities,
   loading,
+  role,
 }) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isviewModalOpen, setIsViewModalOpen] = useState(false);
@@ -165,11 +166,17 @@ export default function FacilityBasicTable({
                 >
                   Meter
                 </TableCell>
-                <TableCell
-                  style={{ fontWeight: 600, color: "#3160b6", padding: "8px" }}
-                >
-                  Actions
-                </TableCell>
+                {(role === "superadmin" || role === "customeradmin") && (
+                  <TableCell
+                    style={{
+                      fontWeight: 600,
+                      color: "#3160b6",
+                      padding: "8px",
+                    }}
+                  >
+                    Actions
+                  </TableCell>
+                )}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -220,32 +227,34 @@ export default function FacilityBasicTable({
                           View
                         </Button>
                       </TableCell>
-                      <TableCell style={{ padding: "8px" }}>
-                        <IconButton
-                          onClick={() => handleAddopen(row.facilityId)}
-                          color="primary"
-                          size="small"
-                        >
-                          <AddIcon />
-                        </IconButton>
+                      {role === "superadmin" && (
+                        <TableCell style={{ padding: "8px" }}>
+                          <IconButton
+                            onClick={() => handleAddopen(row.facilityId)}
+                            color="primary"
+                            size="small"
+                          >
+                            <AddIcon />
+                          </IconButton>
 
-                        <IconButton
-                          color="primary"
-                          size="small"
-                          onClick={() => handleEditOpen(row.facilityId)}
-                        >
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton
-                          onClick={() => {
-                            handleDelete(row);
-                          }}
-                          color="primary"
-                          size="small"
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </TableCell>
+                          <IconButton
+                            color="primary"
+                            size="small"
+                            onClick={() => handleEditOpen(row.facilityId)}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton
+                            onClick={() => {
+                              handleDelete(row);
+                            }}
+                            color="primary"
+                            size="small"
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
             </TableBody>

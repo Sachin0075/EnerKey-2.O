@@ -21,6 +21,7 @@ import { isTokenExpired } from "./services/JWT/isTokenExpired";
 import { getJwtRole } from "./services/JWT/getJwtRole";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotAuthorized from "./components/NotAuthorized";
+import { getJwtSub } from "./services/JWT/getJwtSub";
 
 function AppComponent() {
   const hideNavbar = ["/login", "/forgot"];
@@ -32,12 +33,14 @@ function AppComponent() {
   const location = useLocation();
   const navigate = useNavigate();
   const shouldHide = hideNavbar.includes(location.pathname);
+  const [name, setName] = useState("");
 
   useEffect(() => {
     if (shouldHide) {
       setAuth((prev) => ({ ...prev, loading: false }));
       return;
     }
+
     const token = localStorage.getItem("token");
     if (!token || isTokenExpired(token)) {
       localStorage.removeItem("token");
@@ -57,17 +60,30 @@ function AppComponent() {
       return;
     }
     setAuth({ isUserAuthenticated: true, role, loading: false });
+    const sub = getJwtSub(token);
+    if (sub) {
+      setName(sub);
+    } else {
+      console.error("Failed to retrieve user name from token.");
+      location.reload();
+    }
   }, [location, navigate, shouldHide]);
 
   if (auth.loading) return null;
 
   return (
     <>
-      {!shouldHide && <NavBar role={auth.role} />}
+      {!shouldHide && <NavBar name={name} role={auth.role} />}
       <Routes>
         <Route
           path="/"
-          element={auth.isUserAuthenticated ? <Dashboard /> : <Login />}
+          element={
+            auth.isUserAuthenticated ? (
+              <Dashboard role={auth.role} name={name} />
+            ) : (
+              <Login />
+            )
+          }
         />
         <Route path="/login" element={<Login />} />
         <Route
@@ -78,7 +94,7 @@ function AppComponent() {
               resource="dashboard"
               userRole={auth.role}
             >
-              <Dashboard />
+              <Dashboard role={auth.role} name={name} />
             </ProtectedRoute>
           }
         />
@@ -126,7 +142,7 @@ function AppComponent() {
               resource="reports"
               userRole={auth.role}
             >
-              <Reports />
+              <Reports role={auth.role} />
             </ProtectedRoute>
           }
         />

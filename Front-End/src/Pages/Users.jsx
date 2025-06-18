@@ -5,16 +5,38 @@ import axios from "axios";
 import NotAuthorized from "../components/NotAuthorized";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
+import { toast } from "react-toastify";
+import getProfile from "../services/JWT/getProfile";
 
 const Users = ({ role }) => {
   const [rows, setRows] = useState([]);
   const [orgMap, setOrgMap] = useState({});
   const [loading, setLoading] = useState(true);
+  const [orgId, setOrgId] = useState(null);
 
   useEffect(() => {
-    if (role === "superadmin" || role === "customeradmin") {
-      getProfile();
+    async function fetchData() {
+      if (role === "superadmin") {
+        await getAllUser();
+      } else if (role === "customeradmin") {
+        try {
+          const organizationId = await getProfile();
+          setOrgId(organizationId);
+          if (organizationId) {
+            await getAdminUser(organizationId);
+          } else {
+            setRows([]);
+            setLoading(false);
+          }
+        } catch (error) {
+          setLoading(false);
+          toast.error(
+            `Failed to fetch user profile. Please try again later. ${error}`
+          );
+        }
+      }
     }
+    fetchData();
     // eslint-disable-next-line
   }, [role]);
 
@@ -77,31 +99,6 @@ const Users = ({ role }) => {
     fetchOrganizationNames();
   }
 
-  async function getProfile() {
-    const url = "https://localhost:7266/api/User/profile";
-    const token = localStorage.getItem("token");
-    try {
-      const response = await axios.get(url, {
-        headers: {
-          Authorization: `${token}`,
-        },
-      });
-      if (response.status === 200 && response.data && response.data.data) {
-        const organizationId = response.data.data.organizationId;
-        getAdminUser(organizationId);
-      } else {
-        console.error(
-          "Failed to fetch profile or data is not in the expected format:",
-          response
-        );
-        setLoading(false);
-      }
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-      setLoading(false);
-    }
-  }
-
   async function getAllUser() {
     const url = "https://localhost:7266/api/User/getAllUsers";
     const token = localStorage.getItem("token");
@@ -143,7 +140,7 @@ const Users = ({ role }) => {
     <div>
       <AddButtonUser />
       <UsersTable
-        rows={rows}
+        rows={role === "superadmin" ? rows : rows.filter(u => u.organizationId === orgId)}
         getAllUser={role === "superadmin" ? getAllUser : getAdminUser}
         orgMap={orgMap}
       />

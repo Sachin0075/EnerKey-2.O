@@ -21,7 +21,7 @@ const navItems = [
   { name: "Reports", path: "/reports" },
 ];
 
-const Navbar = ({ role }) => {
+const Navbar = ({ role, name }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [activePath, setActivePath] = React.useState(location.pathname);
@@ -153,7 +153,7 @@ const Navbar = ({ role }) => {
                   fontSize: 18,
                 }}
               >
-                Sachin
+                {name.toUpperCase()}
               </span>
               <div style={{ marginLeft: 8 }}>
                 <PersonIcon
