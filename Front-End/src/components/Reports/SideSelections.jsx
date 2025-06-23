@@ -34,6 +34,8 @@ import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
 
 function SideSelections({
+  selectVirtualMeter,
+  setSelectVirtualMeter,
   consumptionTargets,
   setConsumptionTargets,
   orgIds = [],
@@ -63,6 +65,8 @@ function SideSelections({
 }) {
   // console.log("meter options:", meterOptions);
   const names = ["Min-Consumption", "Max-Consumption"];
+  const [open, setOpen] = React.useState(false);
+
   const quantityOptions = React.useMemo(
     () => [
       {
@@ -113,6 +117,13 @@ function SideSelections({
   );
   console.log("Selected Meter type is ", meterOptions);
 
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const handleOpen = () => {
+    setOpen(true);
+  };
   useEffect(() => {
     if (facilityID) {
       getMetersByFacility(facilityID);
@@ -182,6 +193,15 @@ function SideSelections({
       setSelectedQuantities([]); // Clear quantities when switching to meters tab
     }
   }, [tabValue, setSelectedMeters, setSelectedQuantities]);
+
+  // Add state for radio group value
+  const [meterType, setMeterType] = React.useState("All");
+
+  // Set default radio button on mount
+  useEffect(() => {
+    setMeterType("All");
+    setSelectVirtualMeter(false);
+  }, [setSelectVirtualMeter]);
 
   return (
     <>
@@ -293,9 +313,9 @@ function SideSelections({
             </Box>
             {selectQuantity ? (
               <div className="flex flex-col gap-1 mt-1">
-                {quantityOptions.map((option) => (
+                {quantityOptions.map((option, idx) => (
                   <div
-                    key={option.value}
+                    key={option.value + idx}
                     onClick={() => handleQuantityToggle(option.value)}
                     className={`flex items-center cursor-pointer px-2 py-1 rounded border transition-all duration-200 w-40 h-9 select-none shadow-sm ${
                       selectedQuantities.includes(option.value)
@@ -321,88 +341,134 @@ function SideSelections({
                     <FormLabel id="demo-row-radio-buttons-group-label">
                       Meter type
                     </FormLabel>
-                    <RadioGroup
-                      row
-                      aria-labelledby="demo-row-radio-buttons-group-label"
-                      name="row-radio-buttons-group"
+                    <Select
+                      labelId="demo-controlled-open-select-label"
+                      id="demo-controlled-open-select"
+                      open={open}
+                      sx={{ minWidth: 220 }}
+                      onClose={handleClose}
+                      onOpen={handleOpen}
+                      value={meterType}
+                      label="Select Meter Type"
+                      onChange={handleChange}
                     >
-                      <FormControlLabel
-                        value="All"
-                        control={<Radio />}
-                        label="All"
-                      />
-                      <FormControlLabel
-                        value="Virtual"
-                        control={<Radio />}
-                        label="Virtual"
-                      />
-                    </RadioGroup>
+                      <MenuItem value="All">
+                        <em>All</em>
+                      </MenuItem>
+                      <MenuItem value="Virtual">Virtual</MenuItem>
+                      <MenuItem value="Automatic">Automatic</MenuItem>
+                      <MenuItem value="Manual">Manual</MenuItem>
+                    </Select>
                   </FormControl>
                 </div>
-                {meterOptions.map((option) => (
-                  <div
-                    key={option.id}
-                    onClick={() => handleMeterToggle(option.id)}
-                    className={`flex items-center cursor-pointer px-3 py-2 rounded-lg border transition-all duration-200 w-56 h-12 select-none shadow-sm mb-1 hover:shadow-md hover:border-purple-300 ${
-                      (selectedMeters || []).includes(option.id)
-                        ? "border-purple-500 bg-purple-50 shadow-purple-100"
-                        : "border-gray-200 bg-white"
-                    }`}
-                    style={{ gap: 12 }}
-                  >
-                    <Checkbox
-                      checked={(selectedMeters || []).includes(option.id)}
-                      icon={
-                        <span style={{ fontWeight: "bold", fontSize: 18 }}>
-                          {option.readingType === "Automatic"
-                            ? "A"
-                            : option.readingType === "Manual"
-                            ? "M"
-                            : "V"}
-                        </span>
-                      }
-                      checkedIcon={
+                <div className="flex items-center cursor-pointer px-3 py-2 rounded-lg border transition-all duration-200 w-56 h-12 select-none shadow-sm mb-1 hover:shadow-md hover:border-purple-300">
+                  <Checkbox
+                    checked={selectedMeters.includes("dummy-virtual")}
+                    icon={
+                      <span
+                        style={{
+                          border: "1px solid #a259e6",
+                          padding: "2px 4px",
+                          fontWeight: "bold",
+                          fontSize: 18,
+                        }}
+                      >
+                        V
+                      </span>
+                    }
+                    checkedIcon={
+                      <span
+                        style={{
+                          color: "#a259e6",
+                          fontWeight: "bold",
+                          fontSize: 18,
+                        }}
+                      >
+                        V
+                      </span>
+                    }
+                    onChange={() => handleMeterToggle("dummy-virtual")}
+                    sx={{
+                      color: selectedMeters.includes("dummy-virtual")
+                        ? "#a259e6"
+                        : "#bdbdbd",
+                      "&.Mui-checked": {
+                        color: "#a259e6",
+                      },
+                      mr: 1.5,
+                    }}
+                  />
+                  <span>Dummy Virtual Meter</span>
+                </div>
+
+                {!selectVirtualMeter && (
+                  <div>
+                    {meterOptions.map((option) => (
+                      <div
+                        key={option.id}
+                        onClick={() => handleMeterToggle(option.id)}
+                        className={`flex items-center cursor-pointer px-3 py-2 rounded-lg border transition-all duration-200 w-56 h-12 select-none shadow-sm mb-1 hover:shadow-md hover:border-purple-300 ${
+                          (selectedMeters || []).includes(option.id)
+                            ? "border-purple-500 bg-purple-50 shadow-purple-100"
+                            : "border-gray-200 bg-white"
+                        }`}
+                        style={{ gap: 12 }}
+                      >
+                        <Checkbox
+                          checked={(selectedMeters || []).includes(option.id)}
+                          icon={
+                            <span style={{ fontWeight: "bold", fontSize: 18 }}>
+                              {option.readingType === "Automatic"
+                                ? "A"
+                                : option.readingType === "Manual"
+                                ? "M"
+                                : "V"}
+                            </span>
+                          }
+                          checkedIcon={
+                            <span
+                              style={{
+                                color: "#a259e6",
+                                fontWeight: "bold",
+                                border: "2px solid #a259e6",
+                                borderRadius: "0%",
+                                padding: "2px 4px",
+                                fontSize: 18,
+                              }}
+                            >
+                              {option.readingType === "Automatic"
+                                ? "A"
+                                : option.readingType === "Manual"
+                                ? "M"
+                                : "V"}
+                            </span>
+                          }
+                          sx={{
+                            color: (selectedMeters || []).includes(option.id)
+                              ? "#a259e6"
+                              : "#bdbdbd",
+                            "&.Mui-checked": {
+                              color: "#a259e6",
+                            },
+                            mr: 1.5,
+                          }}
+                        />
+
                         <span
+                          className="font-semibold text-base flex-1"
                           style={{
-                            color: "#a259e6",
-                            fontWeight: "bold",
-                            border: "2px solid #a259e6",
-                            borderRadius: "0%",
-                            padding: "2px 4px",
-                            fontSize: 18,
+                            color: (selectedMeters || []).includes(option.id)
+                              ? "#6c3aad"
+                              : "#333",
+                            letterSpacing: 0.2,
                           }}
                         >
-                          {option.readingType === "Automatic"
-                            ? "A"
-                            : option.readingType === "Manual"
-                            ? "M"
-                            : "V"}
+                          {option.name}
                         </span>
-                      }
-                      sx={{
-                        color: (selectedMeters || []).includes(option.id)
-                          ? "#a259e6"
-                          : "#bdbdbd",
-                        "&.Mui-checked": {
-                          color: "#a259e6",
-                        },
-                        mr: 1.5,
-                      }}
-                    />
-
-                    <span
-                      className="font-semibold text-base flex-1"
-                      style={{
-                        color: (selectedMeters || []).includes(option.id)
-                          ? "#6c3aad"
-                          : "#333",
-                        letterSpacing: 0.2,
-                      }}
-                    >
-                      {option.name}
-                    </span>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
             )}
           </AccordionDetails>

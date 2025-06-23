@@ -33,6 +33,7 @@ const Reports = ({ role }) => {
   const [selectedFrequency, setSelectedFrequency] = useState("Month");
   const [consumptionTargets, setConsumptionTargets] = useState([]);
   const [selectedMeters, setSelectedMeters] = useState([]);
+  const [selectVirtualMeter, setSelectVirtualMeter] = useState(false);
 
   useEffect(() => {
     if (!periodOptions[selectedPeriod].includes(selectedFrequency)) {
@@ -93,6 +94,8 @@ const Reports = ({ role }) => {
   return (
     <div className="flex flex-col md:flex-row gap-4 p-4 mt-4 h-screen">
       <SideSelections
+        selectVirtualMeter={selectVirtualMeter}
+        setSelectVirtualMeter={setSelectVirtualMeter}
         role={role}
         facilityID={facilityID}
         setFacilityID={setFacilityID}
