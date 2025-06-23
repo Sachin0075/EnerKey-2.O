@@ -65,8 +65,6 @@ function SideSelections({
 }) {
   // console.log("meter options:", meterOptions);
   const names = ["Min-Consumption", "Max-Consumption"];
-  const [open, setOpen] = React.useState(false);
-
   const quantityOptions = React.useMemo(
     () => [
       {
@@ -117,13 +115,6 @@ function SideSelections({
   );
   console.log("Selected Meter type is ", meterOptions);
 
-  const handleClose = () => {
-    setOpen(false);
-  };
-
-  const handleOpen = () => {
-    setOpen(true);
-  };
   useEffect(() => {
     if (facilityID) {
       getMetersByFacility(facilityID);
@@ -341,24 +332,41 @@ function SideSelections({
                     <FormLabel id="demo-row-radio-buttons-group-label">
                       Meter type
                     </FormLabel>
-                    <Select
-                      labelId="demo-controlled-open-select-label"
-                      id="demo-controlled-open-select"
-                      open={open}
-                      sx={{ minWidth: 220 }}
-                      onClose={handleClose}
-                      onOpen={handleOpen}
+                    <RadioGroup
+                      row
+                      aria-labelledby="demo-row-radio-buttons-group-label"
+                      name="row-radio-buttons-group"
                       value={meterType}
-                      label="Select Meter Type"
-                      onChange={handleChange}
+                      onChange={(e) => {
+                        setMeterType(e.target.value);
+                        if (e.target.value === "Virtual") {
+                          setSelectVirtualMeter(true);
+                        } else {
+                          setSelectVirtualMeter(false);
+                        }
+                      }}
                     >
-                      <MenuItem value="All">
-                        <em>All</em>
-                      </MenuItem>
-                      <MenuItem value="Virtual">Virtual</MenuItem>
-                      <MenuItem value="Automatic">Automatic</MenuItem>
-                      <MenuItem value="Manual">Manual</MenuItem>
-                    </Select>
+                      <FormControlLabel
+                        value="All"
+                        control={<Radio />}
+                        label="All"
+                      />
+                      <FormControlLabel
+                        value="Virtual"
+                        control={<Radio />}
+                        label="Virtual"
+                      />
+                      <FormControlLabel
+                        value="Automatic"
+                        control={<Radio />}
+                        label="Automatic"
+                      />
+                      <FormControlLabel
+                        value="Manual"
+                        control={<Radio />}
+                        label="Manual"
+                      />
+                    </RadioGroup>
                   </FormControl>
                 </div>
                 <div className="flex items-center cursor-pointer px-3 py-2 rounded-lg border transition-all duration-200 w-56 h-12 select-none shadow-sm mb-1 hover:shadow-md hover:border-purple-300">
