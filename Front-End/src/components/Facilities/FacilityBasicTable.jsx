@@ -20,7 +20,6 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import AddMeter from "./AddMeter.jsx";
 import EditFacility from "./EditFacility.jsx";
-import { getOrganizationNameById } from "../../services/DataServices/getAllOrganizationsIDnName.js";
 
 export default function FacilityBasicTable({
   rows,
@@ -28,7 +27,7 @@ export default function FacilityBasicTable({
   loading,
   role,
   OrgName,
-  setOrgName,
+  orgIdNameMap,
 }) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isviewModalOpen, setIsViewModalOpen] = useState(false);
@@ -39,9 +38,9 @@ export default function FacilityBasicTable({
 
   useEffect(() => {
     getAllFacilities();
-    if (role === "superadmin") {
-      setOrgName();
-    }
+    // if (role !== "superadmin") {
+    //   setOrgName();
+    // }
   }, []);
 
   function handleAddopen(facilityId) {
@@ -92,11 +91,6 @@ export default function FacilityBasicTable({
       }
     }
   }
-  async function getOrgNameByID(id) {
-    const name = await getOrganizationNameById(id);
-    setOrgName(name);
-    console.log("Organization Name:", name);
-  }
   return (
     <>
       {isAddModalOpen && (
@@ -123,6 +117,7 @@ export default function FacilityBasicTable({
         //   handleClose={handleEditClose}
         // />
         <EditFacility
+          role={role}
           handleAPi={getAllFacilities}
           facilityId={facilityId}
           isModalopen={isEditModalOpen}
@@ -230,10 +225,8 @@ export default function FacilityBasicTable({
                         {row.pinCode}
                       </TableCell>
                       <TableCell style={{ padding: "8px" }}>
-                        {role === "superadmin"
-                          ? () => {
-                              getOrgNameByID(rows.organizationId);
-                            }
+                        {orgIdNameMap && row.organizationId
+                          ? orgIdNameMap[row.organizationId] || "-"
                           : OrgName}
                       </TableCell>
                       <TableCell style={{ padding: "8px" }}>

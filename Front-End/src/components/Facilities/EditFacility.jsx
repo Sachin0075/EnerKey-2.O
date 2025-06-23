@@ -19,7 +19,13 @@ import {
 } from "../../services/DataServices/CountryService";
 import { toast } from "react-toastify";
 
-function EditFacility({ facilityId, isModalopen, handleClose, handleAPi }) {
+function EditFacility({
+  facilityId,
+  isModalopen,
+  handleClose,
+  handleAPi,
+  role,
+}) {
   const [facilityData, setFacilityData] = useState({});
   const [value, setValue] = useState({
     name: "",
@@ -29,6 +35,7 @@ function EditFacility({ facilityId, isModalopen, handleClose, handleAPi }) {
     pinCode: "",
     targetA: "",
     targetB: "",
+    organizationId: "",
   });
   const [country, setCountry] = useState([]);
   const [cityNames, setCityNames] = useState([]);
@@ -41,6 +48,38 @@ function EditFacility({ facilityId, isModalopen, handleClose, handleAPi }) {
     targetA: false,
     targetB: false,
   });
+  const [organizations, setOrganizations] = useState({});
+  useEffect(() => {
+    async function fetchOrganizations() {
+      try {
+        const geturl =
+          "https://localhost:7162/api/Organization/getallorganizations";
+        const token = localStorage.getItem("token");
+        const getallresponse = await axios.get(geturl, {
+          headers: {
+            Authorization: `${token}`,
+          },
+        });
+        if (getallresponse.status === 200) {
+          let orgArray = Array.isArray(getallresponse.data)
+            ? getallresponse.data
+            : Array.isArray(getallresponse.data.data)
+            ? getallresponse.data.data
+            : [];
+          const orgKeyValue = orgArray.reduce((acc, org) => {
+            acc[org.organizationId] = org.name;
+            return acc;
+          }, {});
+          setOrganizations(orgKeyValue);
+        } else {
+          setOrganizations({});
+        }
+      } catch (error) {
+        console.error("Error adding facility:", error);
+      }
+    }
+    fetchOrganizations();
+  }, []);
   useEffect(() => {
     async function fetchCountries() {
       const country = await getAllCountries();
@@ -132,6 +171,7 @@ function EditFacility({ facilityId, isModalopen, handleClose, handleAPi }) {
       pinCode: curr.pinCode,
       targetA: curr.targetA,
       targetB: curr.targetB,
+      organizationId: curr.organizationId,
     }));
     updateFacility();
     console.log("Submitted Data:", value);
@@ -209,6 +249,39 @@ function EditFacility({ facilityId, isModalopen, handleClose, handleAPi }) {
                   Select City
                 </span>
               )}
+
+              {role === "SuperAdmin" && (
+                <FormControl
+                  sx={{ width: "440px" }}
+                  error={error.organizationId}
+                >
+                  <InputLabel id="org-select-label">Organization</InputLabel>
+                  <Select
+                    labelId="org-select-label"
+                    id="org-select"
+                    label="Organization"
+                    name="organizationId"
+                    value={value.organizationId || ""}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    error={error.organizationId}
+                    disabled={role !== "superadmin"}
+                  >
+                    {Object.entries(organizations).map(([id, name]) => (
+                      <MenuItem key={id} value={id}>
+                        {name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {error.organizationId && (
+                    <span
+                      style={{ color: "red", fontSize: 12, marginLeft: 14 }}
+                    >
+                      Select Organization
+                    </span>
+                  )}
+                </FormControl>
+              )}
             </FormControl>
             <TextField
               label="Address"
@@ -236,6 +309,7 @@ function EditFacility({ facilityId, isModalopen, handleClose, handleAPi }) {
               onChange={handleChange}
               sx={{ marginTop: 1 }}
             />
+
             <TextField
               label="maximum-consumption"
               name="targetB"

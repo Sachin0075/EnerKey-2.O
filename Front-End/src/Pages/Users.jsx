@@ -133,6 +133,7 @@ const Users = ({ role }) => {
     <div>
       <AddButtonUser />
       <UsersTable
+        role={role}
         rows={rows}
         getAllUser={role === "superadmin" ? getAllUser : getAdminUser}
         orgMap={orgMap}

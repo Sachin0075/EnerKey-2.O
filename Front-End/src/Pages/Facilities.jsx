@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import FacilityBasicTable from "../components/Facilities/FacilityBasicTable";
 import AddButton from "../components/Organization/AddButton";
 import AddButtonFacility from "../components/Facilities/Modals/AddButtonFacility";
@@ -6,11 +6,21 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import { useState } from "react";
 import getProfile from "../services/JWT/getProfile";
+import { getAllOrganizationsIDnName } from "../services/DataServices/getAllOrganizationsIDnName";
 
 const Facilities = ({ role }) => {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState([]);
   const [OrgName, setOrgName] = useState("");
+  const [orgIdNameMap, setOrgIdNameMap] = useState({});
+
+  useEffect(() => {
+    async function fetchOrgNames() {
+      const map = await getAllOrganizationsIDnName();
+      setOrgIdNameMap(map);
+    }
+    fetchOrgNames();
+  }, []);
 
   // useEffect(() => {
   //   getprofile();
@@ -148,6 +158,7 @@ const Facilities = ({ role }) => {
         }
         OrgName={OrgName}
         setOrgName={setOrgName}
+        orgIdNameMap={orgIdNameMap}
       />
     </div>
   );

@@ -119,7 +119,7 @@ export default function UsersTable({ rows, getAllUser, orgMap }) {
                     {row.phoneNumber}
                   </TableCell>
                   <TableCell style={{ padding: "8px" }}>
-                    {orgMap[row.organizationId] || row.organizationId}
+                    {orgMap[row.organizationId] || ""}
                   </TableCell>
                   <TableCell style={{ padding: "8px" }}>{row.role}</TableCell>
                   <TableCell style={{ padding: "8px" }}>
