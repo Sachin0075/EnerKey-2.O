@@ -15,6 +15,10 @@ import {
   Tabs,
   Tab,
   Checkbox,
+  FormControlLabel,
+  Radio,
+  FormLabel,
+  RadioGroup,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -58,7 +62,6 @@ function SideSelections({
   setSelectedFrequency,
 }) {
   // console.log("meter options:", meterOptions);
-
   const names = ["Min-Consumption", "Max-Consumption"];
   const quantityOptions = React.useMemo(
     () => [
@@ -108,6 +111,8 @@ function SideSelections({
     },
     [setMeterOptions]
   );
+  console.log("Selected Meter type is ", meterOptions);
+
   useEffect(() => {
     if (facilityID) {
       getMetersByFacility(facilityID);
@@ -311,6 +316,29 @@ function SideSelections({
               </div>
             ) : (
               <div className="flex flex-col gap-1 mt-1">
+                <div className="flex items-center mb-1">
+                  <FormControl>
+                    <FormLabel id="demo-row-radio-buttons-group-label">
+                      Meter type
+                    </FormLabel>
+                    <RadioGroup
+                      row
+                      aria-labelledby="demo-row-radio-buttons-group-label"
+                      name="row-radio-buttons-group"
+                    >
+                      <FormControlLabel
+                        value="All"
+                        control={<Radio />}
+                        label="All"
+                      />
+                      <FormControlLabel
+                        value="Virtual"
+                        control={<Radio />}
+                        label="Virtual"
+                      />
+                    </RadioGroup>
+                  </FormControl>
+                </div>
                 {meterOptions.map((option) => (
                   <div
                     key={option.id}
@@ -324,6 +352,33 @@ function SideSelections({
                   >
                     <Checkbox
                       checked={(selectedMeters || []).includes(option.id)}
+                      icon={
+                        <span style={{ fontWeight: "bold", fontSize: 18 }}>
+                          {option.readingType === "Automatic"
+                            ? "A"
+                            : option.readingType === "Manual"
+                            ? "M"
+                            : "V"}
+                        </span>
+                      }
+                      checkedIcon={
+                        <span
+                          style={{
+                            color: "#a259e6",
+                            fontWeight: "bold",
+                            border: "2px solid #a259e6",
+                            borderRadius: "0%",
+                            padding: "2px 4px",
+                            fontSize: 18,
+                          }}
+                        >
+                          {option.readingType === "Automatic"
+                            ? "A"
+                            : option.readingType === "Manual"
+                            ? "M"
+                            : "V"}
+                        </span>
+                      }
                       sx={{
                         color: (selectedMeters || []).includes(option.id)
                           ? "#a259e6"
@@ -334,6 +389,7 @@ function SideSelections({
                         mr: 1.5,
                       }}
                     />
+
                     <span
                       className="font-semibold text-base flex-1"
                       style={{
@@ -378,7 +434,6 @@ function SideSelections({
                   value={selectedPeriod}
                   onChange={(e) => {
                     setSelectedPeriod(e.target.value);
-                    // console.log("Selected period changed to:", e.target.value);
                   }}
                 >
                   {Object.keys(periodOptions).map((key) => (
