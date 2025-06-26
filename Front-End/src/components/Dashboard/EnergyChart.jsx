@@ -13,6 +13,7 @@ import {
 import { Bar, Pie } from "react-chartjs-2";
 import Skeleton from "@mui/material/Skeleton";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 ChartJS.register(
   CategoryScale,
@@ -151,7 +152,8 @@ const EnergyDashboard = ({
         }
         return 0;
       } catch (error) {
-        return 0;
+        toast.error(`Error fetching data for quantityId ${qId}:`, error);
+        return;
       }
     };
 
@@ -177,6 +179,7 @@ const EnergyDashboard = ({
           ],
         });
       } catch (error) {
+        toast.error("Error fetching pie chart data:", error);
         // Optionally handle error
       } finally {
         setLoading(false);

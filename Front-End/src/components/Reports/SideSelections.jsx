@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import ClearIcon from "@mui/icons-material/Clear";
 import ListItemText from "@mui/material/ListItemText";
@@ -30,12 +30,13 @@ import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
 import axios from "axios";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { useCallback } from "react";
 
 dayjs.extend(utc);
 
 function SideSelections({
-  selectVirtualMeter,
-  setSelectVirtualMeter,
+  meterType,
+  setMeterType,
   consumptionTargets,
   setConsumptionTargets,
   orgIds = [],
@@ -63,9 +64,8 @@ function SideSelections({
   selectedFrequency,
   setSelectedFrequency,
 }) {
-  // console.log("meter options:", meterOptions);
   const names = ["Min-Consumption", "Max-Consumption"];
-  const quantityOptions = React.useMemo(
+  const quantityOptions = useMemo(
     () => [
       {
         label: "Electricity",
@@ -88,16 +88,14 @@ function SideSelections({
 
   // console.log("Meter options:", meterOptions);
 
-  // const [selectedMetersState, setSelectedMetersState] = React.useState([]);
-
-  const getMetersByFacility = React.useCallback(
+  const getMetersByFacility = useCallback(
     async (facilityId) => {
-      console.log("Fetching meters for facility ID:", facilityId);
+      // console.log("Fetching meters for facility ID:", facilityId);
       console.log("selectedMeters:", selectedMeters);
 
       try {
         const token = localStorage.getItem("token");
-        const url = `https://localhost:7183/api/MeterDefination/getMeterByFacilityId/${facilityId}`; //id is working
+        const url = `https://localhost:7183/api/MeterDefination/getMeterByFacilityId/${facilityId}`;
         const response = await axios.get(url, {
           headers: {
             Authorization: token,
@@ -113,7 +111,7 @@ function SideSelections({
     },
     [setMeterOptions]
   );
-  console.log("Selected Meter type is ", meterOptions);
+  // console.log("Selected Meter type is ", meterOptions);
 
   useEffect(() => {
     if (facilityID) {
@@ -186,13 +184,11 @@ function SideSelections({
   }, [tabValue, setSelectedMeters, setSelectedQuantities]);
 
   // Add state for radio group value
-  const [meterType, setMeterType] = React.useState("All");
 
   // Set default radio button on mount
   useEffect(() => {
     setMeterType("All");
-    setSelectVirtualMeter(false);
-  }, [setSelectVirtualMeter]);
+  }, [setMeterType]);
 
   return (
     <>
@@ -326,7 +322,7 @@ function SideSelections({
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col gap-1 mt-1">
+              <div className="flex flex-col gap-1 mt-1 ">
                 <div className="flex items-center mb-1">
                   <FormControl>
                     <FormLabel id="demo-row-radio-buttons-group-label">
@@ -339,11 +335,9 @@ function SideSelections({
                       value={meterType}
                       onChange={(e) => {
                         setMeterType(e.target.value);
-                        if (e.target.value === "Virtual") {
-                          setSelectVirtualMeter(true);
-                        } else {
-                          setSelectVirtualMeter(false);
-                        }
+                        // console.log("Selected meter type:", e.target.value);
+
+                        setSelectedMeters([]); // Clear selected meters when changing type
                       }}
                     >
                       <FormControlLabel
@@ -369,47 +363,68 @@ function SideSelections({
                     </RadioGroup>
                   </FormControl>
                 </div>
-                <div className="flex items-center cursor-pointer px-3 py-2 rounded-lg border transition-all duration-200 w-56 h-12 select-none shadow-sm mb-1 hover:shadow-md hover:border-purple-300">
-                  <Checkbox
-                    checked={selectedMeters.includes("dummy-virtual")}
-                    icon={
-                      <span
-                        style={{
-                          border: "1px solid #a259e6",
-                          padding: "2px 4px",
-                          fontWeight: "bold",
-                          fontSize: 18,
-                        }}
-                      >
-                        V
-                      </span>
-                    }
-                    checkedIcon={
-                      <span
-                        style={{
+                {/* Show Dummy Virtual Meter for meterType === "Virtual" or "All" */}
+                {(meterType === "Virtual" || meterType === "All") && (
+                  <div
+                    onClick={() => handleMeterToggle("dummy-virtual")}
+                    className={`flex items-center cursor-pointer px-3 py-2 rounded-lg border transition-all duration-200 w-56 h-12 select-none shadow-sm mb-1 hover:shadow-md hover:border-purple-300 ${
+                      selectedMeters.includes("dummy-virtual")
+                        ? "border-purple-500 bg-purple-50 shadow-purple-100"
+                        : "border-gray-200 bg-white"
+                    }`}
+                    style={{ gap: 12 }}
+                  >
+                    <Checkbox
+                      checked={selectedMeters.includes("dummy-virtual")}
+                      icon={
+                        <span
+                          style={{
+                            padding: "2px 4px",
+                            fontWeight: "bold",
+                            fontSize: 18,
+                          }}
+                        >
+                          V
+                        </span>
+                      }
+                      checkedIcon={
+                        <span
+                          style={{
+                            border: "2px solid #a259e6",
+                            padding: "2px 4px",
+                            color: "#a259e6",
+                            fontWeight: "bold",
+                            fontSize: 18,
+                          }}
+                        >
+                          V
+                        </span>
+                      }
+                      sx={{
+                        color: selectedMeters.includes("dummy-virtual")
+                          ? "#a259e6"
+                          : "#bdbdbd",
+                        "&.Mui-checked": {
                           color: "#a259e6",
-                          fontWeight: "bold",
-                          fontSize: 18,
-                        }}
-                      >
-                        V
-                      </span>
-                    }
-                    onChange={() => handleMeterToggle("dummy-virtual")}
-                    sx={{
-                      color: selectedMeters.includes("dummy-virtual")
-                        ? "#a259e6"
-                        : "#bdbdbd",
-                      "&.Mui-checked": {
-                        color: "#a259e6",
-                      },
-                      mr: 1.5,
-                    }}
-                  />
-                  <span>Dummy Virtual Meter</span>
-                </div>
-
-                {!selectVirtualMeter && (
+                        },
+                        mr: 1.5,
+                      }}
+                      onChange={() => handleMeterToggle("dummy-virtual")}
+                    />
+                    <span
+                      className="font-semibold text-base flex-1"
+                      style={{
+                        color: selectedMeters.includes("dummy-virtual")
+                          ? "#6c3aad"
+                          : "#333",
+                        letterSpacing: 0.2,
+                      }}
+                    >
+                      Dummy Virtual Meter
+                    </span>
+                  </div>
+                )}
+                {meterType === "All" && (
                   <div>
                     {meterOptions.map((option) => (
                       <div
@@ -475,6 +490,132 @@ function SideSelections({
                         </span>
                       </div>
                     ))}
+                  </div>
+                )}
+                {meterType === "Automatic" && (
+                  <div>
+                    {meterOptions
+                      .filter((option) => option.readingType === "Automatic")
+                      .map((option) => (
+                        <div
+                          key={option.id}
+                          onClick={() => handleMeterToggle(option.id)}
+                          className={`flex items-center cursor-pointer px-3 py-2 rounded-lg border transition-all duration-200 w-56 h-12 select-none shadow-sm mb-1 hover:shadow-md hover:border-purple-300 ${
+                            (selectedMeters || []).includes(option.id)
+                              ? "border-purple-500 bg-purple-50 shadow-purple-100"
+                              : "border-gray-200 bg-white"
+                          }`}
+                          style={{ gap: 12 }}
+                        >
+                          <Checkbox
+                            checked={(selectedMeters || []).includes(option.id)}
+                            icon={
+                              <span
+                                style={{ fontWeight: "bold", fontSize: 18 }}
+                              >
+                                A
+                              </span>
+                            }
+                            checkedIcon={
+                              <span
+                                style={{
+                                  color: "#a259e6",
+                                  fontWeight: "bold",
+                                  border: "2px solid #a259e6",
+                                  borderRadius: "0%",
+                                  padding: "2px 4px",
+                                  fontSize: 18,
+                                }}
+                              >
+                                A
+                              </span>
+                            }
+                            sx={{
+                              color: (selectedMeters || []).includes(option.id)
+                                ? "#a259e6"
+                                : "#bdbdbd",
+                              "&.Mui-checked": {
+                                color: "#a259e6",
+                              },
+                              mr: 1.5,
+                            }}
+                          />
+                          <span
+                            className="font-semibold text-base flex-1"
+                            style={{
+                              color: (selectedMeters || []).includes(option.id)
+                                ? "#6c3aad"
+                                : "#333",
+                              letterSpacing: 0.2,
+                            }}
+                          >
+                            {option.name}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                )}
+                {meterType === "Manual" && (
+                  <div>
+                    {meterOptions
+                      .filter((option) => option.readingType === "Manual")
+                      .map((option) => (
+                        <div
+                          key={option.id}
+                          onClick={() => handleMeterToggle(option.id)}
+                          className={`flex items-center cursor-pointer px-3 py-2 rounded-lg border transition-all duration-200 w-56 h-12 select-none shadow-sm mb-1 hover:shadow-md hover:border-purple-300 ${
+                            (selectedMeters || []).includes(option.id)
+                              ? "border-purple-500 bg-purple-50 shadow-purple-100"
+                              : "border-gray-200 bg-white"
+                          }`}
+                          style={{ gap: 12 }}
+                        >
+                          <Checkbox
+                            checked={(selectedMeters || []).includes(option.id)}
+                            icon={
+                              <span
+                                style={{ fontWeight: "bold", fontSize: 18 }}
+                              >
+                                M
+                              </span>
+                            }
+                            checkedIcon={
+                              <span
+                                style={{
+                                  color: "#a259e6",
+                                  fontWeight: "bold",
+                                  border: "2px solid #a259e6",
+                                  borderRadius: "0%",
+                                  padding: "2px 4px",
+                                  fontSize: 18,
+                                }}
+                              >
+                                M
+                              </span>
+                            }
+                            sx={{
+                              color: (selectedMeters || []).includes(option.id)
+                                ? "#a259e6"
+                                : "#bdbdbd",
+                              "&.Mui-checked": {
+                                color: "#a259e6",
+                              },
+                              mr: 1.5,
+                            }}
+                          />
+                          <span
+                            className="font-semibold text-base flex-1"
+                            style={{
+                              color: (selectedMeters || []).includes(option.id)
+                                ? "#6c3aad"
+                                : "#333",
+                              letterSpacing: 0.2,
+                            }}
+                          >
+                            {option.name}
+                          </span>
+                        </div>
+                      ))}
                   </div>
                 )}
               </div>

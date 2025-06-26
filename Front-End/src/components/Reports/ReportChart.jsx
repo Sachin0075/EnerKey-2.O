@@ -59,6 +59,7 @@ function ReportChart({
   function getYear(dateStr) {
     return new Date(dateStr).getFullYear();
   }
+  console.log("Selected Meters:", selectedMeters);
 
   useEffect(() => {
     async function fetchData(qid, startDate) {
@@ -413,7 +414,10 @@ function ReportChart({
       <div style={{ minWidth: 750, whiteSpace: "nowrap" }}>
         {allChartData.length > 0 ? (
           allChartData.map((cd, idx) => (
-            <div key={cd.quantity} style={{ marginBottom: 40 }}>
+            <div
+              key={cd.quantity + Math.random() * 100}
+              style={{ marginBottom: 40 }}
+            >
               <Bar
                 data={{ labels: cd.labels, datasets: cd.datasets }}
                 options={{

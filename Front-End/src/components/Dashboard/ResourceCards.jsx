@@ -13,6 +13,10 @@ const ResourceCard = ({ icon: Icon, label, color, bgColor, iconColor }) => {
   );
 };
 
+export function sum(a, b) {
+  return a + b;
+}
+
 const ResourceCards = ({
   facilitiesByOrgID,
   setFacilitiesByOrg,

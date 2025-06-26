@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import ResourceCards from "../components/Dashboard/ResourceCards";
+import QuantityButtons from "../components/Dashboard/QuantityButtons";
 import EnergyDashboard from "../components/Dashboard/EnergyChart";
 import { useState } from "react";
 import { getAllFacilitiesGroupedByOrgID } from "../services/DataServices/FacilityService";
@@ -59,7 +59,7 @@ const Dashboard = ({ name, role }) => {
 
   return (
     <div>
-      <ResourceCards
+      <QuantityButtons
         name={name}
         role={role}
         setSelectedFacilityID={setSelectedFacilityID}

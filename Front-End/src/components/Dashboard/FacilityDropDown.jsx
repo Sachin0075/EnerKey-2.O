@@ -15,42 +15,42 @@ export default function FacilityDropDown({
   const orgIds = Object.keys(facilitiesByOrgID);
   const [facility, setFacility] = useState("");
   const [filteredOrgIds, setFilteredOrgIds] = useState(orgIds);
-
   useEffect(() => {
-    async function filterFacilities() {
-      if (role === "superadmin") {
-        setFilteredOrgIds(orgIds);
-        if (orgIds.length > 0) {
-          const firstOrgId = orgIds[0];
-          const facilities = facilitiesByOrgID[firstOrgId];
-          if (facilities && facilities.length > 0) {
-            setFacility(facilities[0].facilityId);
-            setSelectedFacilityID &&
-              setSelectedFacilityID(facilities[0].facilityId);
-          }
+    filterFacilities();
+  }, [facilitiesByOrgID, setSelectedFacilityID, role]);
+
+  async function filterFacilities() {
+    if (role === "superadmin") {
+      setFilteredOrgIds(orgIds);
+      if (orgIds.length > 0) {
+        const firstOrgId = orgIds[0];
+        const facilities = facilitiesByOrgID[firstOrgId];
+        if (facilities && facilities.length > 0) {
+          setFacility(facilities[0].facilityId);
+          setSelectedFacilityID &&
+            setSelectedFacilityID(facilities[0].facilityId);
         }
-      } else {
-        const profileOrgID = await getProfile();
-        if (profileOrgID && facilitiesByOrgID[profileOrgID]) {
-          setFilteredOrgIds([profileOrgID]);
-          const facilities = facilitiesByOrgID[profileOrgID];
-          if (facilities && facilities.length > 0) {
-            setFacility(facilities[0].facilityId);
-            setSelectedFacilityID &&
-              setSelectedFacilityID(facilities[0].facilityId);
-          } else {
-            setFacility("");
-            setSelectedFacilityID && setSelectedFacilityID("");
-          }
+      }
+    } else {
+      const profileOrgID = await getProfile();
+      if (profileOrgID && facilitiesByOrgID[profileOrgID]) {
+        setFilteredOrgIds([profileOrgID]);
+        const facilities = facilitiesByOrgID[profileOrgID];
+        if (facilities && facilities.length > 0) {
+          setFacility(facilities[0].facilityId);
+          setSelectedFacilityID &&
+            setSelectedFacilityID(facilities[0].facilityId);
         } else {
-          setFilteredOrgIds([]);
           setFacility("");
           setSelectedFacilityID && setSelectedFacilityID("");
         }
+      } else {
+        setFilteredOrgIds([]);
+        setFacility("");
+        setSelectedFacilityID && setSelectedFacilityID("");
       }
     }
-    filterFacilities();
-  }, [facilitiesByOrgID, setSelectedFacilityID, role]);
+  }
 
   const handleChange = (event) => {
     setFacility(event.target.value);
