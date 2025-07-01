@@ -60,7 +60,7 @@ function AppComponent() {
       return;
     }
     setAuth({ isUserAuthenticated: true, role, loading: false });
-    const sub = getJwtSub(token);
+    const sub = getJwtSub();
     if (sub) {
       setName(sub);
     } else {

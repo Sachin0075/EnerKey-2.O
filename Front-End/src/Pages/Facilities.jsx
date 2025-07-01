@@ -22,9 +22,6 @@ const Facilities = ({ role }) => {
     fetchOrgNames();
   }, []);
 
-  // useEffect(() => {
-  //   getprofile();
-  // });
   async function getAllFacilities() {
     setLoading(true);
     const token = localStorage.getItem("token");
